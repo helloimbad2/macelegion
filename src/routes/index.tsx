@@ -58,7 +58,7 @@ function Index() {
                   key={p.name}
                   to="/player/$name"
                   params={{ name: p.name }}
-                  className={cn("rise group relative flex flex-col items-center rounded-xl px-2 pb-4 pt-3 backdrop-blur-sm transition-transform hover:-translate-y-1", style, place === 1 ? "sm:pb-8" : "")}
+                  className={cn("rise group relative flex flex-col items-center rounded-xl px-2 pb-4 pt-3 transition-colors hover:bg-muted/60", style, place === 1 ? "sm:pb-8" : "")}
                   style={{ animationDelay: `${150 + i * 90}ms` }}
                 >
                   <img
@@ -66,11 +66,11 @@ function Index() {
                     alt=""
                     className={cn("pixel -mt-16 w-auto drop-shadow-xl", place === 1 ? "h-36 sm:h-48" : "h-28 sm:h-36")}
                   />
-                  <span className={cn("mt-2 font-display text-sm font-semibold tabular-nums", place === 1 ? "text-gold" : place === 2 ? "text-silver" : "text-bronze")}>
+                  <span className={cn("mt-2 font-mono text-sm font-medium", place === 1 ? "text-gold" : place === 2 ? "text-silver" : "text-bronze")}>
                     #{place}
                   </span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{p.points} pts</span>
+                  <span className="font-mono text-xs text-muted-foreground">{p.points} pts</span>
                   <div className="mt-3 hidden gap-1.5 sm:flex">
                     {KITS.map((k) => (
                       <TierBadge key={k.id} tier={p.tiers[k.id]} />
@@ -106,12 +106,12 @@ function Index() {
             <p className="mt-1.5 text-sm text-muted-foreground">Points are the sum of a player's tier in every kit.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <div className="flex rounded-full border bg-surface p-0.5">
+            <div className="flex rounded-md border bg-surface p-0.5">
               {regions.map((r) => (
                 <button
                   key={r}
                   onClick={() => { setRegion(r); setLimit(PAGE); }}
-                  className={cn("rounded-full px-3 py-1 text-xs font-medium transition-colors", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
+                  className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
                 >
                   {r}
                 </button>
@@ -121,7 +121,7 @@ function Index() {
               value={filter}
               onChange={(e) => { setFilter(e.target.value); setLimit(PAGE); }}
               placeholder="Filter by name"
-              className="h-9 w-full rounded-full border bg-surface px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/70 focus:bg-card sm:w-48"
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-48"
             />
           </div>
         </div>
@@ -149,7 +149,7 @@ function Index() {
                   <div className="truncate font-medium">{p.name}</div>
                   <div className="flex gap-2 text-xs text-muted-foreground">
                     <span>{title(p.points)}</span>
-                    <span className="tabular-nums text-muted-foreground/70">{p.points} pts</span>
+                    <span className="font-mono text-muted-foreground/70">{p.points} pts</span>
                   </div>
                 </div>
               </div>
@@ -172,7 +172,7 @@ function Index() {
           {shown.length === 0 && <p className="px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
         </div>
         {filtered.length > limit && (
-          <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-full border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground">
+          <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-md border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground">
             Show more ({filtered.length - limit} left)
           </button>
         )}

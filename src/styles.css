@@ -7,10 +7,11 @@
 @theme inline {
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --font-display: "Bricolage Grotesque", "Instrument Sans", sans-serif;
-  --font-sans: "Instrument Sans", system-ui, sans-serif;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --font-display: "Geist", system-ui, sans-serif;
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -33,26 +34,26 @@
   --color-t5: var(--t5);
 }
 
-/* Palette is taken from the hero: slate dusk, a low sun, torchlit stone. */
+/* Vercel-style: true black, neutral greys, hairline borders, white primary. */
 :root {
-  --background: oklch(0.145 0.014 262);
-  --surface: oklch(0.172 0.015 262);
-  --card: oklch(0.196 0.016 262);
-  --muted: oklch(0.245 0.016 262);
-  --foreground: oklch(0.945 0.008 85);
-  --muted-foreground: oklch(0.69 0.016 262);
-  --primary: oklch(0.76 0.125 62);
-  --primary-foreground: oklch(0.2 0.02 60);
-  --accent: oklch(0.26 0.02 262);
-  --border: oklch(0.29 0.015 262);
-  --gold: oklch(0.85 0.125 92);
-  --silver: oklch(0.82 0.014 250);
-  --bronze: oklch(0.69 0.1 48);
-  --t1: oklch(0.85 0.125 92);
-  --t2: oklch(0.82 0.014 250);
-  --t3: oklch(0.7 0.1 48);
-  --t4: oklch(0.74 0.085 165);
-  --t5: oklch(0.64 0.03 262);
+  --background: oklch(0 0 0);
+  --surface: oklch(0.1 0 0);
+  --card: oklch(0.11 0 0);
+  --muted: oklch(0.19 0 0);
+  --foreground: oklch(0.985 0 0);
+  --muted-foreground: oklch(0.71 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.1 0 0);
+  --accent: oklch(0.2 0 0);
+  --border: oklch(0.26 0 0);
+  --gold: oklch(0.83 0.15 85);
+  --silver: oklch(0.82 0 0);
+  --bronze: oklch(0.7 0.13 55);
+  --t1: oklch(0.83 0.15 85);
+  --t2: oklch(0.82 0 0);
+  --t3: oklch(0.7 0.13 55);
+  --t4: oklch(0.75 0.16 155);
+  --t5: oklch(0.6 0 0);
 }
 
 @layer base {
@@ -62,20 +63,20 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "tnum" 1, "cv11" 1;
+    font-feature-settings: "tnum" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
   :focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid oklch(0.62 0.2 255);
     outline-offset: 2px;
   }
-  ::selection { background: color-mix(in oklab, var(--primary) 35%, transparent); }
+  ::selection { background: oklch(0.62 0.2 255 / 0.4); }
 }
 
 @utility pixel { image-rendering: pixelated; }
@@ -84,12 +85,12 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 18px 40px -28px oklch(0 0 0 / 0.8);
+  box-shadow: none;
 }
 
 @utility hero-fade {
   background:
-    radial-gradient(ellipse 70% 60% at 50% 38%, color-mix(in oklab, var(--background) 55%, transparent), transparent 75%),
+    radial-gradient(ellipse 70% 60% at 50% 38%, color-mix(in oklab, var(--background) 70%, transparent), transparent 75%),
     linear-gradient(180deg, color-mix(in oklab, var(--background) 45%, transparent) 0%, color-mix(in oklab, var(--background) 35%, transparent) 40%, var(--background) 100%);
 }
 

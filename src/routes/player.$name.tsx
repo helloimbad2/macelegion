@@ -40,7 +40,7 @@ function PlayerPage() {
       <div className="panel mt-4 grid gap-8 p-6 sm:grid-cols-[160px_minmax(0,1fr)] sm:p-8">
         <img src={bodyRender(p.name)} alt={p.name} className="pixel mx-auto h-56 w-auto" />
         <div className="min-w-0">
-          <p className="text-sm font-medium text-primary">Rank {idx + 1} overall, {p.region}</p>
+          <p className="font-mono text-sm text-muted-foreground">Rank {idx + 1} overall, {p.region}</p>
           <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>
           <p className="mt-2 text-muted-foreground">{title(p.points)}, <span className="font-semibold tabular-nums text-foreground">{p.points}</span> points</p>
 
@@ -51,7 +51,7 @@ function PlayerPage() {
                 <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="flex items-center gap-3 rounded-lg border bg-surface px-3.5 py-3 transition-colors hover:border-primary/60 hover:bg-muted/40">
                   <img src={k.icon} alt="" className="pixel h-7 w-7" />
                   <span className="flex-1 text-sm font-medium">{k.name}</span>
-                  <span className="text-sm tabular-nums text-muted-foreground">{t ? `+${TIER_POINTS[t]}` : "Untested"}</span>
+                  <span className="font-mono text-sm text-muted-foreground">{t ? `+${TIER_POINTS[t]}` : "Untested"}</span>
                   <TierBadge tier={t} />
                 </Link>
               );
