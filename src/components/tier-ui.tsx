@@ -1,35 +1,73 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { KITS, logoUrl, type Tier } from "@/lib/tiers";
+import { KITS, logoUrl, type KitId, type Tier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
 
-// Tier colour lives in the badge itself: a filled chip for high tiers,
-// a quieter outlined chip for low tiers, so HT/LT reads without a label.
-const tierColor: Record<string, { hi: string; lo: string }> = {
-  "1": { hi: "bg-t1 text-black border-t1", lo: "text-t1 border-t1/45 bg-t1/10" },
-  "2": { hi: "bg-t2 text-black border-t2", lo: "text-t2 border-t2/45 bg-t2/10" },
-  "3": { hi: "bg-t3 text-black border-t3", lo: "text-t3 border-t3/45 bg-t3/10" },
-  "4": { hi: "bg-t4 text-black border-t4", lo: "text-t4 border-t4/45 bg-t4/10" },
-  "5": { hi: "bg-t5 text-black border-t5", lo: "text-t5 border-t5/45 bg-t5/10" },
+// Only tiers 1-3 carry colour. Tiers 4 and 5 are deliberately dark grey.
+// HT is a solid pill, LT a quieter tinted one.
+const TONE: Record<string, { ring: string; ringLo: string; fill: string; glow: string; hi: string; lo: string }> = {
+  "1": {
+    ring: "border-t1", ringLo: "border-t1/55", fill: "bg-t1/12", glow: "shadow-[0_0_18px_-4px_var(--t1)]",
+    hi: "bg-t1 text-black", lo: "bg-[color-mix(in_oklab,var(--t1)_18%,#0b0b0b)] text-t1",
+  },
+  "2": {
+    ring: "border-t2", ringLo: "border-t2/55", fill: "bg-t2/12", glow: "shadow-[0_0_18px_-4px_var(--t2)]",
+    hi: "bg-t2 text-black", lo: "bg-[color-mix(in_oklab,var(--t2)_18%,#0b0b0b)] text-t2",
+  },
+  "3": {
+    ring: "border-t3", ringLo: "border-t3/55", fill: "bg-t3/12", glow: "shadow-[0_0_18px_-4px_var(--t3)]",
+    hi: "bg-t3 text-black", lo: "bg-[color-mix(in_oklab,var(--t3)_18%,#0b0b0b)] text-t3",
+  },
+  "4": {
+    ring: "border-[oklch(0.34_0_0)]", ringLo: "border-[oklch(0.28_0_0)]", fill: "bg-[oklch(0.15_0_0)]", glow: "",
+    hi: "bg-[oklch(0.3_0_0)] text-[oklch(0.78_0_0)]", lo: "bg-[oklch(0.2_0_0)] text-[oklch(0.62_0_0)]",
+  },
+  "5": {
+    ring: "border-[oklch(0.3_0_0)]", ringLo: "border-[oklch(0.25_0_0)]", fill: "bg-[oklch(0.14_0_0)]", glow: "",
+    hi: "bg-[oklch(0.26_0_0)] text-[oklch(0.7_0_0)]", lo: "bg-[oklch(0.18_0_0)] text-[oklch(0.55_0_0)]",
+  },
 };
 
 export function TierBadge({ tier, className }: { tier?: Tier | undefined; className?: string }) {
   if (!tier)
     return (
-      <span className={cn("inline-flex h-6 min-w-11 items-center justify-center rounded-sm text-xs text-muted-foreground/40", className)}>
-        –
+      <span className={cn("inline-flex h-6 min-w-11 items-center justify-center text-xs text-muted-foreground/40", className)}>–</span>
+    );
+  const t = TONE[tier.charAt(2)];
+  return (
+    <span className={cn("inline-flex h-6 min-w-11 items-center justify-center rounded-md font-mono text-xs font-semibold", tier.startsWith("HT") ? t.hi : t.lo, className)}>
+      {tier}
+    </span>
+  );
+}
+
+const SIZES = {
+  xs: { circle: "h-9 w-9", icon: "h-5 w-5", pill: "h-5 min-w-10 text-[11px]", gap: "mt-1" },
+  sm: { circle: "h-12 w-12", icon: "h-7 w-7", pill: "h-6 min-w-11 text-xs", gap: "mt-1.5" },
+  md: { circle: "h-16 w-16", icon: "h-9 w-9", pill: "h-6 min-w-12 text-xs", gap: "mt-2" },
+} as const;
+
+/** Kit icon in a ringed circle with the tier pill underneath. */
+export function KitTier({ kitId, tier, size = "md", className }: { kitId: KitId; tier?: Tier | undefined; size?: keyof typeof SIZES; className?: string }) {
+  const kit = KITS.find((k) => k.id === kitId)!;
+  const s = SIZES[size];
+  if (!tier)
+    return (
+      <span title={`${kit.name}: untested`} className={cn("inline-flex flex-col items-center", className)}>
+        <span className={cn("flex items-center justify-center rounded-full border-2 border-dashed border-[oklch(0.3_0_0)] bg-[oklch(0.13_0_0)]", s.circle)}>
+          <img src={kit.icon} alt="" className={cn("pixel opacity-20 grayscale", s.icon)} />
+        </span>
+        <span className={cn("flex items-center justify-center text-muted-foreground/60", s.gap, s.pill.split(" ")[0])}>–</span>
       </span>
     );
-  const c = tierColor[tier.charAt(2)];
+  const t = TONE[tier.charAt(2)];
+  const high = tier.startsWith("HT");
   return (
-    <span
-      className={cn(
-        "inline-flex h-6 min-w-11 items-center justify-center rounded-sm border font-mono text-xs font-medium",
-        tier.startsWith("HT") ? c.hi : c.lo,
-        className,
-      )}
-    >
-      {tier}
+    <span title={`${kit.name}: ${tier}`} className={cn("inline-flex flex-col items-center", className)}>
+      <span className={cn("flex items-center justify-center rounded-full border-2", s.circle, t.fill, high ? t.ring : t.ringLo, high && t.glow)}>
+        <img src={kit.icon} alt={kit.name} className={cn("pixel", s.icon)} />
+      </span>
+      <span className={cn("inline-flex items-center justify-center rounded-md font-mono font-semibold", s.gap, s.pill, high ? t.hi : t.lo)}>{tier}</span>
     </span>
   );
 }

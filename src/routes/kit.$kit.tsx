@@ -48,7 +48,7 @@ function KitPage() {
             .sort((a, b) => (a.tiers[kit.id]!.startsWith("HT") ? -1 : 1) - (b.tiers[kit.id]!.startsWith("HT") ? -1 : 1));
           return (
             <section key={n} className="panel overflow-hidden" style={{ borderTop: `2px solid var(--t${n})` }}>
-              <h2 className={`flex items-baseline justify-between border-b bg-surface px-4 py-3 text-lg font-semibold ${tierHead[n - 1]}`}>Tier {n}<span className="text-xs font-normal tabular-nums text-muted-foreground">{inTier.length}</span></h2>
+              <h2 className={`flex items-baseline justify-between border-b px-4 py-3 text-lg font-semibold ${tierHead[n - 1]}`} style={{ background: `color-mix(in oklab, var(--t${n}) 9%, var(--surface))` }}>Tier {n}<span className="text-xs font-normal tabular-nums text-muted-foreground">{inTier.length}</span></h2>
               <ul className="p-1.5">
                 {inTier.map((p) => {
                   const t = p.tiers[kit.id] as Tier;
