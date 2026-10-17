@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type CSSProperties } from "react";
-import { KITS, logoUrl, type KitId, type Tier } from "@/lib/tiers";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { KITS, logoUrl, skinUrls, type KitId, type Tier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
 
 // Colour recipe (taken from the reference): one tint per tier, mixed into the page
@@ -41,7 +41,9 @@ export function KitTier({ kitId, tier, size = "md", className }: { kitId: KitId;
   if (!tier)
     return (
       <span title={`${kit.name}: untested`} className={cn("inline-flex flex-col items-center", className)}>
-        <span className={cn("rounded-full border-2 border-dotted border-[oklch(0.24_0_0)] bg-[oklch(0.09_0_0)]", s.circle)} />
+        <span className={cn("flex items-center justify-center rounded-full border-2 border-dotted border-[oklch(0.24_0_0)] bg-[oklch(0.09_0_0)]", s.circle)}>
+          <img src={kit.icon} alt="" className={cn("pixel opacity-20 grayscale", s.icon)} />
+        </span>
         <span className={cn("-mt-1 flex items-center justify-center font-bold text-muted-foreground/60", s.pill.split(" ")[0], "min-w-9")}>–</span>
       </span>
     );
@@ -130,10 +132,26 @@ export function SiteFooter() {
     <footer className="mt-24 border-t bg-surface/60">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:justify-between">
         <span>© 2026 Mace Legion. Not affiliated with Mojang or Microsoft.</span>
-        <span>Tiers update after every test.</span>
       </div>
     </footer>
   );
+}
+
+/** Player head or full-body render. Falls back through several skin services if one fails. */
+export function PlayerImg({
+  player, kind = "head", size = 40, className, alt = "",
+}: { player: { name: string; uuid?: string | undefined }; kind?: "head" | "body"; size?: number; className?: string; alt?: string }) {
+  const urls = useMemo(() => skinUrls(player, kind, size), [player.name, player.uuid, kind, size]);
+  const [i, setI] = useState(0);
+  const ref = useRef<HTMLImageElement>(null);
+  const next = () => setI((n) => Math.min(n + 1, urls.length - 1));
+  useEffect(() => setI(0), [urls[0]]);
+  // an image that already failed before hydration never fires onError, so check once mounted
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.complete && el.naturalWidth === 0) next();
+  }, [i, urls]);
+  return <img ref={ref} src={urls[i]} alt={alt} className={className} loading={kind === "head" ? "lazy" : undefined} onError={next} />;
 }
 
 export function RankNumber({ rank }: { rank: number }) {

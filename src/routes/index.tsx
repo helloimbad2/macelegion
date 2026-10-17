@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { KITS, avatar, bodyRender, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
-import { KitTier, RankNumber, TierBadge } from "@/components/tier-ui";
+import { useState, type CSSProperties } from "react";
+import { KITS, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
+import { KitTier, PlayerImg, RankNumber, TierBadge } from "@/components/tier-ui";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -33,6 +33,8 @@ function Index() {
     (p) => p.name.toLowerCase().includes(filter.toLowerCase()) && (region === "All" || p.region === region),
   );
   const shown = filtered.slice(0, limit);
+  // rank inside the selected region (separate from the overall rank)
+  const regionRank = region === "All" ? null : new Map(list.filter((p) => p.region === region).map((p, i) => [p.name, i + 1]));
   const podium = [list[1], list[0], list[2]];
 
   return (
@@ -41,7 +43,9 @@ function Index() {
         <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-14 sm:pt-20">
           <img src={logoUrl} alt="Mace Legion" className="logo-shadow rise mx-auto w-full max-w-xl" />
           <p className="rise mx-auto mt-5 max-w-md text-center text-base text-foreground/75 [animation-delay:80ms]">
-            Tested rankings for the mace community. <span className="font-semibold tabular-nums text-foreground">{list.length}</span> players across{" "}
+            Tested rankings for the mace community.
+            <br />
+            <span className="font-semibold tabular-nums text-foreground">{list.length}</span> players across{" "}
             <span className="font-semibold tabular-nums text-foreground">{KITS.length}</span> kits.
           </p>
 
@@ -59,9 +63,9 @@ function Index() {
                   style={{ animationDelay: `${150 + i * 90}ms` }}
                 >
                   <span className="podium-edge" aria-hidden />
-                  <img
-                    src={bodyRender(p.name)}
-                    alt=""
+                  <PlayerImg
+                    player={p}
+                    kind="body"
                     className={cn("pixel w-auto drop-shadow-[0_12px_14px_rgba(0,0,0,0.55)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
@@ -101,7 +105,6 @@ function Index() {
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold">Overall rankings</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">Points are the sum of a player's tier in every kit.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="flex rounded-md border bg-surface p-0.5">
@@ -125,8 +128,8 @@ function Index() {
           </div>
         </div>
 
-        <div className="mt-5">
-          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
+        <div className="mt-5" style={{ "--rk": regionRank ? "5.25rem" : "3rem", "--rkm": regionRank ? "4.75rem" : "2.5rem" } as CSSProperties}>
+          <div className="hidden grid-cols-[var(--rk)_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
             <span>#</span><span>Player</span><span>Region</span>
             {KITS.map((k) => (
               <span key={k.id} className="flex justify-center" title={k.name}>
@@ -141,15 +144,18 @@ function Index() {
                 to="/player/$name"
                 params={{ name: p.name }}
                 className={cn(
-                  "shine grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)]",
+                  "shine grid grid-cols-[var(--rkm)_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors hover:bg-muted/50 md:grid-cols-[var(--rk)_minmax(0,1fr)_5rem_repeat(3,4.25rem)]",
                   p.rank === 1 && "border-gold/25 bg-gradient-to-r from-gold/[0.12] to-transparent shadow-[inset_3px_0_0_var(--gold)] [--sheen:var(--gold)]",
                   p.rank === 2 && "border-silver/25 bg-gradient-to-r from-silver/[0.10] to-transparent shadow-[inset_3px_0_0_var(--silver)] [--sheen:var(--silver)]",
                   p.rank === 3 && "border-bronze/25 bg-gradient-to-r from-bronze/[0.12] to-transparent shadow-[inset_3px_0_0_var(--bronze)] [--sheen:var(--bronze)]",
                 )}
               >
-                <RankNumber rank={p.rank} />
+                <div className="flex items-baseline gap-1">
+                  <RankNumber rank={p.rank} />
+                  {regionRank && <span className="font-mono text-sm font-semibold text-red-500" title="Rank in this region">#{regionRank.get(p.name)}</span>}
+                </div>
                 <div className="flex min-w-0 items-center gap-3">
-                  <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" loading="lazy" />
+                  <PlayerImg player={p} size={40} className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" />
                   <div className="min-w-0">
                     <div className="truncate font-medium">{p.name}</div>
                     <div className="flex gap-2 text-xs text-muted-foreground">
@@ -164,7 +170,7 @@ function Index() {
                     <KitTier kitId={k.id} tier={p.tiers[k.id]} size="xs" />
                   </span>
                 ))}
-                <div className="col-span-2 flex flex-wrap gap-2 pl-[3.25rem] md:hidden">
+                <div className="col-span-2 flex flex-wrap gap-2 pl-[calc(var(--rkm)+0.75rem)] md:hidden">
                   {KITS.map((k) => (
                     <span key={k.id} className="flex items-center gap-1">
                       <img src={k.icon} alt={k.name} className="pixel h-4 w-4" />

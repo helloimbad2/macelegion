@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { KITS, TIER_POINTS, bodyRender, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
-import { KitTier } from "@/components/tier-ui";
+import { KITS, TIER_POINTS, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
+import { KitTier, PlayerImg } from "@/components/tier-ui";
 
 export const Route = createFileRoute("/player/$name")({
   loader: ({ context }) => context.queryClient.ensureQueryData(playersQuery),
@@ -45,7 +45,7 @@ function PlayerPage() {
           className="pointer-events-none absolute inset-y-0 left-0 w-1/2"
           style={{ background: `radial-gradient(ellipse 60% 55% at 28% 45%, color-mix(in oklab, ${tone} 24%, transparent), transparent 70%)` }}
         />
-        <img src={bodyRender(p.name)} alt={p.name} className="pixel relative mx-auto h-60 w-auto drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
+        <PlayerImg player={p} kind="body" alt={p.name} className="pixel relative mx-auto h-60 w-auto drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
         <div className="relative min-w-0">
           <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, <span style={{ color: regionInfo(p.region).color }}>{regionInfo(p.region).name}</span></p>
           <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>
@@ -56,9 +56,9 @@ function PlayerPage() {
             {KITS.map((k) => {
               const t = p.tiers[k.id];
               return (
-                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex w-28 flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50">
+                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex w-32 flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50">
                   <KitTier kitId={k.id} tier={t} size="md" />
-                  <span className="mt-1 text-sm font-medium">{k.name}</span>
+                  <span className="mt-1 whitespace-nowrap text-sm font-medium">{k.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">{t ? `+${TIER_POINTS[t]} pts` : "Untested"}</span>
                 </Link>
               );

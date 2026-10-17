@@ -21,6 +21,8 @@ export const TIER_POINTS: Record<Tier, number> = {
 
 export type Player = {
   name: string;
+  /** Mojang UUID (no dashes) when it could be resolved. Skins load by UUID, which survives renames and rate limits. */
+  uuid?: string;
   region: string;
   tiers: Partial<Record<KitId, Tier>>;
 };
@@ -38,8 +40,29 @@ export function title(pts: number) {
   return "Rookie";
 }
 
-export const avatar = (name: string, size = 64) => `https://mc-heads.net/avatar/${name}/${size}`;
-export const bodyRender = (name: string) => `https://mc-heads.net/body/${name}/240`;
+type SkinSubject = { name: string; uuid?: string | undefined };
+
+/**
+ * Ordered list of skin image URLs to try. The first is used; if it fails to load, the
+ * next one is tried. UUID lookups come first because name lookups are what get rate
+ * limited when a whole leaderboard loads at once (which is what produced Steve heads).
+ */
+export function skinUrls(p: SkinSubject, kind: "head" | "body", size = 40): string[] {
+  const id = p.uuid?.replace(/-/g, "");
+  const name = encodeURIComponent(p.name);
+  const px = size * 2; // 2x for sharp pixels on retina screens
+  if (kind === "head")
+    return [
+      ...(id ? [`https://crafatar.com/avatars/${id}?size=${px}&overlay`] : []),
+      `https://mc-heads.net/avatar/${id ?? name}/${px}`,
+      `https://minotar.net/helm/${name}/${px}`,
+    ];
+  return [
+    ...(id ? [`https://crafatar.com/renders/body/${id}?scale=10&overlay`] : []),
+    `https://mc-heads.net/body/${id ?? name}/320`,
+    `https://visage.surgeplay.com/full/320/${id ?? name}`,
+  ];
+}
 
 export const playersQuery = {
   queryKey: ["players"],

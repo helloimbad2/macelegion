@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { KITS, avatar, playersQuery, regionInfo, type Tier } from "@/lib/tiers";
-import { TierMark } from "@/components/tier-ui";
+import { KITS, playersQuery, regionInfo, type Tier } from "@/lib/tiers";
+import { PlayerImg, TierMark } from "@/components/tier-ui";
 
 export const Route = createFileRoute("/kit/$kit")({
   loader: ({ context, params }) => {
@@ -38,11 +38,6 @@ function KitPage() {
         <img src={kit.icon} alt="" className="pixel h-14 w-14" />
         <div>
           <h1 className="text-4xl font-semibold">{kit.name}</h1>
-          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            Every tested player, Tier 1 to Tier 5.
-            <span className="inline-flex items-center gap-1"><TierMark high={false} className="h-4 w-4" />Low</span>
-            <span className="inline-flex items-center gap-1 text-foreground/80"><TierMark high className="h-4 w-4" />High</span>
-          </p>
         </div>
       </div>
 
@@ -67,7 +62,7 @@ function KitPage() {
                         className={`group relative flex items-center gap-2.5 overflow-hidden rounded-lg py-2 pl-3.5 pr-2.5 transition-colors ${high ? "bg-muted hover:bg-accent" : "bg-muted/45 hover:bg-muted/80"}`}
                       >
                         <span aria-hidden className="absolute inset-y-0 left-0 w-[3px]" style={{ background: region.color }} />
-                        <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-xl bg-background p-0.5 ring-2 ring-border" loading="lazy" />
+                        <PlayerImg player={p} size={40} className="pixel h-9 w-9 shrink-0 rounded-xl bg-background p-0.5 ring-2 ring-border" />
                         <span className="relative h-6 min-w-0 flex-1 overflow-hidden text-sm font-semibold">
                           <span className="absolute inset-0 block truncate leading-6 transition-all duration-200 group-hover:-translate-y-full group-hover:opacity-0 group-focus-visible:-translate-y-full group-focus-visible:opacity-0">{p.name}</span>
                           <span aria-hidden className="absolute inset-0 block translate-y-full truncate leading-6 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100" style={{ color: region.color }}>{region.short}</span>
