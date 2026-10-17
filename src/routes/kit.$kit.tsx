@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { KITS, avatar, playersQuery, type Tier } from "@/lib/tiers";
+import { KITS, avatar, playersQuery, regionInfo, type Tier } from "@/lib/tiers";
+import { TierMark } from "@/components/tier-ui";
 
 export const Route = createFileRoute("/kit/$kit")({
   loader: ({ context, params }) => {
@@ -37,7 +38,11 @@ function KitPage() {
         <img src={kit.icon} alt="" className="pixel h-14 w-14" />
         <div>
           <h1 className="text-4xl font-semibold">{kit.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Every tested player, Tier 1 to Tier 5.</p>
+          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            Every tested player, Tier 1 to Tier 5.
+            <span className="inline-flex items-center gap-1"><TierMark high={false} className="h-4 w-4" />Low</span>
+            <span className="inline-flex items-center gap-1 text-foreground/80"><TierMark high className="h-4 w-4" />High</span>
+          </p>
         </div>
       </div>
 
@@ -49,21 +54,30 @@ function KitPage() {
           return (
             <section key={n} className="panel overflow-hidden" style={{ borderTop: `2px solid var(--t${n})` }}>
               <h2 className={`flex items-baseline justify-between border-b px-4 py-3 text-lg font-semibold ${tierHead[n - 1]}`} style={{ background: `color-mix(in oklab, var(--t${n}) 9%, var(--surface))` }}>Tier {n}<span className="text-xs font-normal tabular-nums text-muted-foreground">{inTier.length}</span></h2>
-              <ul className="p-1.5">
+              <ul className="flex flex-col gap-1.5 p-2">
                 {inTier.map((p) => {
                   const t = p.tiers[kit.id] as Tier;
                   const high = t.startsWith("HT");
+                  const region = regionInfo(p.region);
                   return (
                     <li key={p.name}>
-                      <Link to="/player/$name" params={{ name: p.name }} className="flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors hover:bg-muted/60">
-                        <img src={avatar(p.name, 28)} alt="" className="pixel h-6 w-6 shrink-0 rounded ring-1 ring-border" loading="lazy" />
-                        <span className="min-w-0 flex-1 truncate text-sm">{p.name}</span>
-                        <span className={`text-xs ${high ? "font-medium text-foreground" : "text-muted-foreground"}`}>{high ? "High" : "Low"}</span>
+                      <Link
+                        to="/player/$name"
+                        params={{ name: p.name }}
+                        className={`group relative flex items-center gap-2.5 overflow-hidden rounded-lg py-2 pl-3.5 pr-2.5 transition-colors ${high ? "bg-muted hover:bg-accent" : "bg-muted/45 hover:bg-muted/80"}`}
+                      >
+                        <span aria-hidden className="absolute inset-y-0 left-0 w-[3px]" style={{ background: region.color }} />
+                        <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-xl bg-background p-0.5 ring-2 ring-border" loading="lazy" />
+                        <span className="relative h-6 min-w-0 flex-1 overflow-hidden text-sm font-semibold">
+                          <span className="absolute inset-0 block truncate leading-6 transition-all duration-200 group-hover:-translate-y-full group-hover:opacity-0 group-focus-visible:-translate-y-full group-focus-visible:opacity-0">{p.name}</span>
+                          <span aria-hidden className="absolute inset-0 block translate-y-full truncate leading-6 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100" style={{ color: region.color }}>{region.short}</span>
+                        </span>
+                        <TierMark high={high} className={high ? "text-foreground" : "text-muted-foreground"} />
                       </Link>
                     </li>
                   );
                 })}
-                {inTier.length === 0 && <li className="px-2.5 py-3 text-sm text-muted-foreground">Nobody yet.</li>}
+                {inTier.length === 0 && <li className="px-2 py-3 text-sm text-muted-foreground">Nobody yet.</li>}
               </ul>
             </section>
           );

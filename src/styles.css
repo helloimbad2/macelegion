@@ -67,6 +67,29 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Backdrop: the arena at dusk, darkened toward the bottom, with soft colour and grain. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 0.12) 0%, rgb(0 0 0 / 0.55) 42%, rgb(0 0 0 / 0.9) 100%),
+      url("./assets/hero.jpg") center top / cover no-repeat;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 40% at 12% 100%, rgb(104 84 200 / 0.18), transparent 70%),
+      radial-gradient(ellipse 55% 40% at 92% 88%, rgb(200 92 62 / 0.12), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
   h1, h2, h3 {
     font-family: var(--font-display);
     letter-spacing: -0.035em;
@@ -82,16 +105,11 @@
 @utility pixel { image-rendering: pixelated; }
 
 @utility panel {
-  background: var(--card);
+  background: color-mix(in oklab, var(--card) 84%, transparent);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: none;
-}
-
-@utility hero-fade {
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 38%, color-mix(in oklab, var(--background) 70%, transparent), transparent 75%),
-    linear-gradient(180deg, color-mix(in oklab, var(--background) 45%, transparent) 0%, color-mix(in oklab, var(--background) 35%, transparent) 40%, var(--background) 100%);
 }
 
 /* Podium cards: metallic gold / silver / bronze. Each sets a light, base and deep tone. */
@@ -124,23 +142,29 @@
     z-index: -1;
     background: radial-gradient(ellipse 65% 50% at 50% 30%, color-mix(in oklab, var(--tone) 34%, transparent), transparent 72%);
   }
-  /* hover shimmer: a soft diagonal sheen sweeps across the card */
-  .podium::after {
+  /* Hover shimmer: a diagonal sheen that crosses the whole card and leaves it on the far side. */
+  .podium::after,
+  .shine::after {
     content: "";
     position: absolute;
     inset: 0;
     z-index: 2;
     pointer-events: none;
-    background: linear-gradient(105deg, transparent 38%, color-mix(in oklab, var(--tone-hi) 38%, transparent) 50%, transparent 62%);
-    background-size: 260% 100%;
-    background-position: 100% 0;
-    background-repeat: no-repeat;
-    opacity: 0;
+    transform: translateX(-100%) skewX(-18deg);
   }
-  .podium:hover::after {
-    opacity: 1;
-    background-position: 0% 0;
-    transition: background-position 1s cubic-bezier(.45,.1,.3,1), opacity 0.12s;
+  .podium::after {
+    background: linear-gradient(105deg, transparent 36%, color-mix(in oklab, var(--tone-hi) 40%, transparent) 50%, transparent 64%);
+  }
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::after {
+    background: linear-gradient(105deg, transparent 42%, color-mix(in oklab, var(--sheen, #fff) 16%, transparent) 50%, transparent 58%);
+  }
+  .podium:hover::after,
+  .shine:hover::after {
+    animation: sheen 0.95s cubic-bezier(.45,0,.55,1) both;
   }
   .podium-rank {
     background: linear-gradient(180deg, var(--tone-hi) 0%, var(--tone) 50%, var(--tone-lo) 100%);
@@ -153,11 +177,12 @@
 @utility logo-shadow { filter: drop-shadow(0 10px 28px oklch(0 0 0 / 0.65)); }
 
 /* One orchestrated entrance, used on the hero only. */
+@keyframes sheen { from { transform: translateX(-100%) skewX(-18deg); } to { transform: translateX(100%) skewX(-18deg); } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @utility rise { animation: rise 0.6s cubic-bezier(.2,.7,.2,1) both; }
 
 @media (prefers-reduced-motion: reduce) {
   .rise { animation: none; }
-  .podium:hover::after { transition: none; opacity: 0; }
+  .podium:hover::after, .shine:hover::after { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }

@@ -59,6 +59,16 @@ export function KitTier({ kitId, tier, size = "md", className }: { kitId: KitId;
   );
 }
 
+/** Low tier is one chevron, high tier is two. */
+export function TierMark({ high, className }: { high: boolean; className?: string }) {
+  return (
+    <svg role="img" aria-label={high ? "High tier" : "Low tier"} viewBox="0 0 20 20" className={cn("h-5 w-5 shrink-0", className)} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <title>{high ? "High tier" : "Low tier"}</title>
+      {high ? <path d="m4.5 10.5 5.5-5.5 5.5 5.5M4.5 16 10 10.5 15.5 16" /> : <path d="m4.5 13 5.5-5.5 5.5 5.5" />}
+    </svg>
+  );
+}
+
 const navLink =
   "relative flex items-center gap-2 px-3 py-5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-md after:bg-transparent";
 const navActive = "text-foreground after:bg-primary";

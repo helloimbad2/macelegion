@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { KITS, TIER_POINTS, bodyRender, playersQuery, ranked, title } from "@/lib/tiers";
+import { KITS, TIER_POINTS, bodyRender, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
 import { KitTier } from "@/components/tier-ui";
 
 export const Route = createFileRoute("/player/$name")({
@@ -47,7 +47,7 @@ function PlayerPage() {
         />
         <img src={bodyRender(p.name)} alt={p.name} className="pixel relative mx-auto h-60 w-auto drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
         <div className="relative min-w-0">
-          <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, {p.region}</p>
+          <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, <span style={{ color: regionInfo(p.region).color }}>{regionInfo(p.region).name}</span></p>
           <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>
           <p className="mt-2 text-muted-foreground">{title(p.points)}, <span className="font-semibold tabular-nums text-foreground">{p.points}</span> points</p>
 

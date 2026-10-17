@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { KITS, avatar, bodyRender, logoUrl, playersQuery, ranked, title } from "@/lib/tiers";
+import { KITS, avatar, bodyRender, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
 import { KitTier, RankNumber, TierBadge } from "@/components/tier-ui";
-import hero from "@/assets/hero.jpg";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -38,9 +37,7 @@ function Index() {
 
   return (
     <>
-      <section className="relative -mt-px overflow-hidden border-b">
-        <img src={hero} alt="" width={1920} height={800} className="absolute inset-0 h-full w-full object-cover" />
-        <div className="hero-fade absolute inset-0" />
+      <section className="relative">
         <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-14 sm:pt-20">
           <img src={logoUrl} alt="Mace Legion" className="logo-shadow rise mx-auto w-full max-w-xl" />
           <p className="rise mx-auto mt-5 max-w-md text-center text-base text-foreground/75 [animation-delay:80ms]">
@@ -114,6 +111,7 @@ function Index() {
                   onClick={() => { setRegion(r); setLimit(PAGE); }}
                   className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
                 >
+                  {r !== "All" && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle" style={{ background: regionInfo(r).color }} />}
                   {r}
                 </button>
               ))}
@@ -127,8 +125,8 @@ function Index() {
           </div>
         </div>
 
-        <div className="panel mt-5 overflow-hidden">
-          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 border-b bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
+        <div className="mt-5">
+          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
             <span>#</span><span>Player</span><span>Region</span>
             {KITS.map((k) => (
               <span key={k.id} className="flex justify-center" title={k.name}>
@@ -136,41 +134,48 @@ function Index() {
               </span>
             ))}
           </div>
-          {shown.map((p) => (
-            <Link
-              key={p.name}
-              to="/player/$name"
-              params={{ name: p.name }}
-              className={cn("grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border/70 px-4 py-2.5 transition-colors last:border-0 hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)]", p.rank === 1 && "bg-gradient-to-r from-gold/[0.10] to-transparent shadow-[inset_2px_0_0_var(--gold)]", p.rank === 2 && "bg-gradient-to-r from-silver/[0.08] to-transparent shadow-[inset_2px_0_0_var(--silver)]", p.rank === 3 && "bg-gradient-to-r from-bronze/[0.10] to-transparent shadow-[inset_2px_0_0_var(--bronze)]")}
-            >
-              <RankNumber rank={p.rank} />
-              <div className="flex min-w-0 items-center gap-3">
-                <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" loading="lazy" />
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{p.name}</div>
-                  <div className="flex gap-2 text-xs text-muted-foreground">
-                    <span>{title(p.points)}</span>
-                    <span className="font-mono text-muted-foreground/70">{p.points} pts</span>
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            {shown.map((p) => (
+              <Link
+                key={p.name}
+                to="/player/$name"
+                params={{ name: p.name }}
+                className={cn(
+                  "shine grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)]",
+                  p.rank === 1 && "border-gold/25 bg-gradient-to-r from-gold/[0.12] to-transparent shadow-[inset_3px_0_0_var(--gold)] [--sheen:var(--gold)]",
+                  p.rank === 2 && "border-silver/25 bg-gradient-to-r from-silver/[0.10] to-transparent shadow-[inset_3px_0_0_var(--silver)] [--sheen:var(--silver)]",
+                  p.rank === 3 && "border-bronze/25 bg-gradient-to-r from-bronze/[0.12] to-transparent shadow-[inset_3px_0_0_var(--bronze)] [--sheen:var(--bronze)]",
+                )}
+              >
+                <RankNumber rank={p.rank} />
+                <div className="flex min-w-0 items-center gap-3">
+                  <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" loading="lazy" />
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{p.name}</div>
+                    <div className="flex gap-2 text-xs text-muted-foreground">
+                      <span>{title(p.points)}</span>
+                      <span className="font-mono text-muted-foreground/70">{p.points} pts</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <span className="hidden text-sm text-muted-foreground md:block">{p.region}</span>
-              {KITS.map((k) => (
-                <span key={k.id} className="hidden justify-center md:flex">
-                  <KitTier kitId={k.id} tier={p.tiers[k.id]} size="xs" />
-                </span>
-              ))}
-              <div className="col-span-2 flex flex-wrap gap-2 pl-[3.25rem] md:hidden">
+                <span className="hidden text-sm font-medium md:block" style={{ color: regionInfo(p.region).color }}>{p.region}</span>
                 {KITS.map((k) => (
-                  <span key={k.id} className="flex items-center gap-1">
-                    <img src={k.icon} alt={k.name} className="pixel h-4 w-4" />
-                    <TierBadge tier={p.tiers[k.id]} />
+                  <span key={k.id} className="hidden justify-center md:flex">
+                    <KitTier kitId={k.id} tier={p.tiers[k.id]} size="xs" />
                   </span>
                 ))}
-              </div>
-            </Link>
-          ))}
-          {shown.length === 0 && <p className="px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
+                <div className="col-span-2 flex flex-wrap gap-2 pl-[3.25rem] md:hidden">
+                  {KITS.map((k) => (
+                    <span key={k.id} className="flex items-center gap-1">
+                      <img src={k.icon} alt={k.name} className="pixel h-4 w-4" />
+                      <TierBadge tier={p.tiers[k.id]} />
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+          {shown.length === 0 && <p className="rounded-lg border bg-card px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
         </div>
         {filtered.length > limit && (
           <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-md border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground">
