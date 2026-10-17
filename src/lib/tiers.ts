@@ -1,18 +1,18 @@
 import { getPlayers } from "./players.functions";
-import logo from "@/assets/logo.png.asset.json";
-import maceSmp from "@/assets/kit-macesmp.png.asset.json";
-import diamondMace from "@/assets/kit-diamondmace.png.asset.json";
-import macePot from "@/assets/kit-macepot.png.asset.json";
+import logo from "@/assets/logo.png";
+import maceSmp from "@/assets/kit-macesmp.png";
+import diamondMace from "@/assets/kit-diamondmace.png";
+import macePot from "@/assets/kit-macepot.png";
 
-export const logoUrl = logo.url;
+export const logoUrl = logo;
 
 export type KitId = "macesmp" | "diamondmace" | "macepot";
 export type Tier = "HT1" | "LT1" | "HT2" | "LT2" | "HT3" | "LT3" | "HT4" | "LT4" | "HT5" | "LT5";
 
 export const KITS: { id: KitId; name: string; icon: string }[] = [
-  { id: "macesmp", name: "Mace SMP", icon: maceSmp.url },
-  { id: "diamondmace", name: "Diamond Mace", icon: diamondMace.url },
-  { id: "macepot", name: "Mace Pot", icon: macePot.url },
+  { id: "macesmp", name: "Mace SMP", icon: maceSmp },
+  { id: "diamondmace", name: "Diamond Mace", icon: diamondMace },
+  { id: "macepot", name: "Mace Pot", icon: macePot },
 ];
 
 export const TIER_POINTS: Record<Tier, number> = {
