@@ -52,11 +52,11 @@ function PlayerPage() {
           <p className="mt-2 text-muted-foreground">{title(p.points)}, <span className="font-semibold tabular-nums text-foreground">{p.points}</span> points</p>
 
           <h2 className="mt-8 text-sm font-medium text-muted-foreground">Tiers</h2>
-          <div className="mt-2 grid grid-cols-3 gap-2 rounded-xl border bg-surface p-3 sm:gap-3 sm:p-4">
+          <div className="mt-2 flex flex-wrap gap-1 rounded-xl border bg-surface p-3 sm:p-4">
             {KITS.map((k) => {
               const t = p.tiers[k.id];
               return (
-                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50">
+                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex w-28 flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50">
                   <KitTier kitId={k.id} tier={t} size="md" />
                   <span className="mt-1 text-sm font-medium">{k.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">{t ? `+${TIER_POINTS[t]} pts` : "Untested"}</span>

@@ -53,8 +53,7 @@ function Index() {
               if (!p) return <div key={i} />;
               const place = p.rank;
               const style = place === 1 ? "podium-gold" : place === 2 ? "podium-silver" : "podium-bronze";
-              const tone = place === 1 ? "text-gold" : place === 2 ? "text-silver" : "text-bronze";
-              return (
+                            return (
                 <Link
                   key={p.name}
                   to="/player/$name"
@@ -62,17 +61,18 @@ function Index() {
                   className={cn("podium rise group flex flex-col items-center rounded-xl px-2 pb-5 pt-6 transition-transform hover:-translate-y-0.5", style, place === 1 ? "sm:pb-8 sm:pt-9" : "")}
                   style={{ animationDelay: `${150 + i * 90}ms` }}
                 >
+                  <span className="podium-edge" aria-hidden />
                   <img
                     src={bodyRender(p.name)}
                     alt=""
                     className={cn("pixel w-auto drop-shadow-[0_12px_14px_rgba(0,0,0,0.55)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
                   />
-                  <span className={cn("mt-3 font-display text-2xl font-semibold tabular-nums sm:text-3xl", tone)}>{place}</span>
+                  <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
                   <span className="mt-0.5 text-xs text-muted-foreground">
-                    {title(p.points)} <span className={cn("ml-1 font-mono", tone)}>{p.points} pts</span>
+                    {title(p.points)} <span className="ml-1 font-mono text-[color:var(--tone)]">{p.points} pts</span>
                   </span>
-                  <div className="mt-4 hidden gap-3 sm:flex">
+                  <div className="mt-4 hidden gap-1.5 sm:flex">
                     {KITS.map((k) => (
                       <KitTier key={k.id} kitId={k.id} tier={p.tiers[k.id]} size="sm" />
                     ))}
@@ -128,7 +128,7 @@ function Index() {
         </div>
 
         <div className="panel mt-5 overflow-hidden">
-          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,5.5rem)] items-center gap-3 border-b bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
+          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 border-b bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
             <span>#</span><span>Player</span><span>Region</span>
             {KITS.map((k) => (
               <span key={k.id} className="flex justify-center" title={k.name}>
@@ -141,7 +141,7 @@ function Index() {
               key={p.name}
               to="/player/$name"
               params={{ name: p.name }}
-              className={cn("grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border/70 px-4 py-2.5 transition-colors last:border-0 hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,5.5rem)]", p.rank === 1 && "bg-gradient-to-r from-gold/[0.10] to-transparent shadow-[inset_2px_0_0_var(--gold)]", p.rank === 2 && "bg-gradient-to-r from-silver/[0.08] to-transparent shadow-[inset_2px_0_0_var(--silver)]", p.rank === 3 && "bg-gradient-to-r from-bronze/[0.10] to-transparent shadow-[inset_2px_0_0_var(--bronze)]")}
+              className={cn("grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border/70 px-4 py-2.5 transition-colors last:border-0 hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)]", p.rank === 1 && "bg-gradient-to-r from-gold/[0.10] to-transparent shadow-[inset_2px_0_0_var(--gold)]", p.rank === 2 && "bg-gradient-to-r from-silver/[0.08] to-transparent shadow-[inset_2px_0_0_var(--silver)]", p.rank === 3 && "bg-gradient-to-r from-bronze/[0.10] to-transparent shadow-[inset_2px_0_0_var(--bronze)]")}
             >
               <RankNumber rank={p.rank} />
               <div className="flex min-w-0 items-center gap-3">
