@@ -1,0 +1,182 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { KITS, avatar, bodyRender, logoUrl, playersQuery, ranked, title } from "@/lib/tiers";
+import { RankNumber, TierBadge } from "@/components/tier-ui";
+import hero from "@/assets/hero.jpg";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Mace Legion — Overall Mace PvP Rankings" },
+      { name: "description", content: "Official tier list for Mace SMP, Diamond Mace and Mace Pot. See where every tested player ranks." },
+      { property: "og:title", content: "Mace Legion — Overall Rankings" },
+      { property: "og:description", content: "Official tier list for Mace SMP, Diamond Mace and Mace Pot." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(playersQuery),
+  component: Index,
+});
+
+const PAGE = 50;
+
+function Index() {
+  const { data } = useSuspenseQuery(playersQuery);
+  const [filter, setFilter] = useState("");
+  const [region, setRegion] = useState("All");
+  const [limit, setLimit] = useState(PAGE);
+  const list = ranked(data).map((p, i) => ({ ...p, rank: i + 1 }));
+  const regions = ["All", ...Array.from(new Set(list.map((p) => p.region))).filter((r) => r !== "—").sort()];
+  const filtered = list.filter(
+    (p) => p.name.toLowerCase().includes(filter.toLowerCase()) && (region === "All" || p.region === region),
+  );
+  const shown = filtered.slice(0, limit);
+  const podium = [list[1], list[0], list[2]];
+
+  return (
+    <>
+      <section className="relative -mt-px overflow-hidden border-b">
+        <img src={hero} alt="" width={1920} height={800} className="absolute inset-0 h-full w-full object-cover" />
+        <div className="hero-fade absolute inset-0" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-14 sm:pt-20">
+          <img src={logoUrl} alt="Mace Legion" className="logo-shadow rise mx-auto w-full max-w-xl" />
+          <p className="rise mx-auto mt-5 max-w-md text-center text-base text-foreground/75 [animation-delay:80ms]">
+            Tested rankings for the mace community. <span className="font-semibold tabular-nums text-foreground">{list.length}</span> players across{" "}
+            <span className="font-semibold tabular-nums text-foreground">{KITS.length}</span> kits.
+          </p>
+
+          <div className="mt-12 grid grid-cols-3 items-end gap-2 sm:gap-4">
+            {podium.map((p, i) => {
+              if (!p) return <div key={i} />;
+              const place = p.rank;
+              const style = place === 1 ? "podium-gold" : place === 2 ? "podium-silver" : "podium-bronze";
+              return (
+                <Link
+                  key={p.name}
+                  to="/player/$name"
+                  params={{ name: p.name }}
+                  className={cn("rise group relative flex flex-col items-center rounded-xl px-2 pb-4 pt-3 backdrop-blur-sm transition-transform hover:-translate-y-1", style, place === 1 ? "sm:pb-8" : "")}
+                  style={{ animationDelay: `${150 + i * 90}ms` }}
+                >
+                  <img
+                    src={bodyRender(p.name)}
+                    alt=""
+                    className={cn("pixel -mt-16 w-auto drop-shadow-xl", place === 1 ? "h-36 sm:h-48" : "h-28 sm:h-36")}
+                  />
+                  <span className={cn("mt-2 font-display text-sm font-semibold tabular-nums", place === 1 ? "text-gold" : place === 2 ? "text-silver" : "text-bronze")}>
+                    #{place}
+                  </span>
+                  <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{p.points} pts</span>
+                  <div className="mt-3 hidden gap-1.5 sm:flex">
+                    {KITS.map((k) => (
+                      <TierBadge key={k.id} tier={p.tiers[k.id]} />
+                    ))}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 pt-10">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {KITS.map((k) => {
+            const count = list.filter((p) => p.tiers[k.id]).length;
+            return (
+              <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="panel group flex items-center gap-4 p-4 transition-colors hover:border-primary/60 hover:bg-muted/50">
+                <img src={k.icon} alt="" className="pixel h-12 w-12" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-lg font-semibold leading-tight">{k.name}</div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">{count ? `${count} ranked players` : "Testing soon"}</div>
+                </div>
+                <svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m8 5 5 5-5 5" /></svg>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold">Overall rankings</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">Points are the sum of a player's tier in every kit.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex rounded-full border bg-surface p-0.5">
+              {regions.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => { setRegion(r); setLimit(PAGE); }}
+                  className={cn("rounded-full px-3 py-1 text-xs font-medium transition-colors", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <input
+              value={filter}
+              onChange={(e) => { setFilter(e.target.value); setLimit(PAGE); }}
+              placeholder="Filter by name"
+              className="h-9 w-full rounded-full border bg-surface px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/70 focus:bg-card sm:w-48"
+            />
+          </div>
+        </div>
+
+        <div className="panel mt-5 overflow-hidden">
+          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,5.5rem)] items-center gap-3 border-b bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
+            <span>#</span><span>Player</span><span>Region</span>
+            {KITS.map((k) => (
+              <span key={k.id} className="flex justify-center" title={k.name}>
+                <img src={k.icon} alt={k.name} className="pixel h-5 w-5" />
+              </span>
+            ))}
+          </div>
+          {shown.map((p) => (
+            <Link
+              key={p.name}
+              to="/player/$name"
+              params={{ name: p.name }}
+              className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 border-b border-border/70 px-4 py-3 transition-colors last:border-0 hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,5.5rem)]"
+            >
+              <RankNumber rank={p.rank} />
+              <div className="flex min-w-0 items-center gap-3">
+                <img src={avatar(p.name, 40)} alt="" className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" loading="lazy" />
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{p.name}</div>
+                  <div className="flex gap-2 text-xs text-muted-foreground">
+                    <span>{title(p.points)}</span>
+                    <span className="tabular-nums text-muted-foreground/70">{p.points} pts</span>
+                  </div>
+                </div>
+              </div>
+              <span className="hidden text-sm text-muted-foreground md:block">{p.region}</span>
+              {KITS.map((k) => (
+                <span key={k.id} className="hidden justify-center md:flex">
+                  <TierBadge tier={p.tiers[k.id]} />
+                </span>
+              ))}
+              <div className="col-span-2 flex flex-wrap gap-2 pl-[3.25rem] md:hidden">
+                {KITS.map((k) => (
+                  <span key={k.id} className="flex items-center gap-1">
+                    <img src={k.icon} alt={k.name} className="pixel h-4 w-4" />
+                    <TierBadge tier={p.tiers[k.id]} />
+                  </span>
+                ))}
+              </div>
+            </Link>
+          ))}
+          {shown.length === 0 && <p className="px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
+        </div>
+        {filtered.length > limit && (
+          <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-full border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground">
+            Show more ({filtered.length - limit} left)
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
