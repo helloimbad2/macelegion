@@ -21,7 +21,7 @@ export const TIER_POINTS: Record<Tier, number> = {
 
 export type Player = {
   name: string;
-  /** Mojang UUID (no dashes) when it could be resolved. Skins load by UUID, which survives renames and rate limits. */
+  /** Optional Minecraft UUID, used for skins instead of the name when the tier API provides one. */
   uuid?: string;
   region: string;
   tiers: Partial<Record<KitId, Tier>>;
@@ -43,25 +43,20 @@ export function title(pts: number) {
 type SkinSubject = { name: string; uuid?: string | undefined };
 
 /**
- * Ordered list of skin image URLs to try. The first is used; if it fails to load, the
- * next one is tried. UUID lookups come first because name lookups are what get rate
- * limited when a whole leaderboard loads at once (which is what produced Steve heads).
+ * All skins come from crafty.gg's render service (https://crafty.gg/skin-service), which
+ * resolves usernames itself. Heads are flat 2D faces; bodies are the 3D full-body render.
+ * Returns [primary, fallback]: the fallback is Crafty's own Steve, so a failed load never
+ * shows a broken image.
  */
 export function skinUrls(p: SkinSubject, kind: "head" | "body", size = 40): string[] {
-  const id = p.uuid?.replace(/-/g, "");
-  const name = encodeURIComponent(p.name);
-  const px = size * 2; // 2x for sharp pixels on retina screens
-  if (kind === "head")
-    return [
-      ...(id ? [`https://crafatar.com/avatars/${id}?size=${px}&overlay`] : []),
-      `https://mc-heads.net/avatar/${id ?? name}/${px}`,
-      `https://minotar.net/helm/${name}/${px}`,
-    ];
-  return [
-    ...(id ? [`https://crafatar.com/renders/body/${id}?scale=10&overlay`] : []),
-    `https://mc-heads.net/body/${id ?? name}/320`,
-    `https://visage.surgeplay.com/full/320/${id ?? name}`,
-  ];
+  const who = encodeURIComponent(p.uuid?.replace(/-/g, "") ?? p.name);
+  const steve = "MHF_Steve";
+  if (kind === "head") {
+    const px = Math.min(1024, Math.max(32, size * 2)); // 2x for sharp pixels on retina screens
+    return [`https://render.crafty.gg/2d/head/${who}?size=${px}`, `https://render.crafty.gg/2d/head/${steve}?size=${px}`];
+  }
+  const q = "width=300&height=360&x=-30&z=50";
+  return [`https://render.crafty.gg/3d/full/${who}?${q}`, `https://render.crafty.gg/3d/full/${steve}?${q}`];
 }
 
 export const playersQuery = {

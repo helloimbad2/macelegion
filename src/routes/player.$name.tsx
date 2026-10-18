@@ -45,7 +45,7 @@ function PlayerPage() {
           className="pointer-events-none absolute inset-y-0 left-0 w-1/2"
           style={{ background: `radial-gradient(ellipse 60% 55% at 28% 45%, color-mix(in oklab, ${tone} 24%, transparent), transparent 70%)` }}
         />
-        <PlayerImg player={p} kind="body" alt={p.name} className="pixel relative mx-auto h-60 w-auto drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
+        <PlayerImg player={p} kind="body" alt={p.name} className="pixel relative mx-auto h-60 w-auto max-w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
         <div className="relative min-w-0">
           <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, <span style={{ color: regionInfo(p.region).color }}>{regionInfo(p.region).name}</span></p>
           <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>

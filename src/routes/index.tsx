@@ -66,7 +66,7 @@ function Index() {
                   <PlayerImg
                     player={p}
                     kind="body"
-                    className={cn("pixel w-auto drop-shadow-[0_12px_14px_rgba(0,0,0,0.55)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
+                    className={cn("pixel w-auto max-w-full object-contain drop-shadow-[0_12px_14px_rgba(0,0,0,0.55)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
