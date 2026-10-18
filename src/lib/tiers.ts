@@ -31,13 +31,19 @@ export function points(p: Player) {
   return Object.values(p.tiers).reduce((s, t) => s + (t ? TIER_POINTS[t] : 0), 0);
 }
 
+/** Achievement titles, highest first. `min` is the total points needed. */
+export const TITLES = [
+  { name: "Combat Grandmaster", min: 400, color: "#f6c453", desc: "Obtained 400+ total points." },
+  { name: "Combat Master", min: 250, color: "#f5b23c", desc: "Obtained 250+ total points." },
+  { name: "Combat Ace", min: 100, color: "#f2517a", desc: "Obtained 100+ total points." },
+  { name: "Combat Specialist", min: 50, color: "#b78cf6", desc: "Obtained 50+ total points." },
+  { name: "Combat Cadet", min: 20, color: "#9b9cf2", desc: "Obtained 20+ total points." },
+  { name: "Combat Novice", min: 10, color: "#8d8ff0", desc: "Obtained 10+ total points." },
+  { name: "Rookie", min: 0, color: "#7d8493", desc: "Starting rank for players with less than 10 points." },
+] as const;
+
 export function title(pts: number) {
-  if (pts >= 150) return "Combat Grandmaster";
-  if (pts >= 100) return "Combat Master";
-  if (pts >= 50) return "Combat Ace";
-  if (pts >= 20) return "Combat Specialist";
-  if (pts >= 10) return "Combat Cadet";
-  return "Rookie";
+  return (TITLES.find((t) => pts >= t.min) ?? TITLES[TITLES.length - 1]!).name;
 }
 
 type SkinSubject = { name: string; uuid?: string | undefined };

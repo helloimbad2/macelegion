@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { KITS, playersQuery, regionInfo, type Tier } from "@/lib/tiers";
 import { PlayerImg, TierMark } from "@/components/tier-ui";
+import { KitInfo } from "@/components/kit-info";
 
 export const Route = createFileRoute("/kit/$kit")({
   loader: ({ context, params }) => {
@@ -34,11 +35,12 @@ function KitPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-10">
-      <div className="flex items-center gap-4">
-        <img src={kit.icon} alt="" className="pixel h-14 w-14" />
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <img src={kit.icon} alt="" className="pixel h-14 w-14" />
           <h1 className="text-4xl font-semibold">{kit.name}</h1>
         </div>
+        <KitInfo kitId={kit.id} />
       </div>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
