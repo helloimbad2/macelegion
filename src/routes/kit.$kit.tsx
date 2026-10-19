@@ -35,10 +35,10 @@ function KitPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <img src={kit.icon} alt="" className="pixel h-14 w-14" />
-          <h1 className="text-4xl font-semibold">{kit.name}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <img src={kit.icon} alt="" className="pixel h-11 w-11 shrink-0 sm:h-14 sm:w-14" />
+          <h1 className="truncate text-3xl font-semibold sm:text-4xl">{kit.name}</h1>
         </div>
         <KitInfo kitId={kit.id} />
       </div>

@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import { KITS, logoUrl, skinUrls, type KitId, type Tier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Colour recipe (taken from the reference): one tint per tier, mixed into the page
 // background, drives both the ring and the pill fill. Text is the bright tier colour,
@@ -40,24 +41,28 @@ export function KitTier({ kitId, tier, size = "md", className }: { kitId: KitId;
   const s = SIZES[size];
   if (!tier)
     return (
-      <span title={`${kit.name}: untested`} className={cn("inline-flex flex-col items-center", className)}>
-        <span className={cn("flex items-center justify-center rounded-full border-2 border-dotted border-[oklch(0.24_0_0)] bg-[oklch(0.09_0_0)]", s.circle)}>
-          <img src={kit.icon} alt="" className={cn("pixel opacity-20 grayscale", s.icon)} />
+      <Tip label={`${kit.name}: untested`}>
+        <span className={cn("inline-flex flex-col items-center", className)}>
+          <span className={cn("flex items-center justify-center rounded-full border-2 border-dotted border-[oklch(0.24_0_0)] bg-[oklch(0.09_0_0)]", s.circle)}>
+            <img src={kit.icon} alt="" className={cn("pixel opacity-20 grayscale", s.icon)} />
+          </span>
+          <span className={cn("-mt-1 flex items-center justify-center font-bold text-muted-foreground/60", s.pill.split(" ")[0], "min-w-9")}>–</span>
         </span>
-        <span className={cn("-mt-1 flex items-center justify-center font-bold text-muted-foreground/60", s.pill.split(" ")[0], "min-w-9")}>–</span>
-      </span>
+      </Tip>
     );
   return (
-    <span title={`${kit.name}: ${tier}`} style={cv(tier)} className={cn("inline-flex flex-col items-center", className)}>
-      <span className={cn("flex items-center justify-center rounded-full border-2 bg-[oklch(0.08_0_0)]", RING, s.circle)}>
-        <img src={kit.icon} alt={kit.name} className={cn("pixel", s.icon)} />
+    <Tip label={`${kit.name}: ${tier}`}>
+      <span style={cv(tier)} className={cn("inline-flex flex-col items-center", className)}>
+        <span className={cn("flex items-center justify-center rounded-full border-2 bg-[oklch(0.08_0_0)]", RING, s.circle)}>
+          <img src={kit.icon} alt={kit.name} className={cn("pixel", s.icon)} />
+        </span>
+        <span
+          className={cn("relative -mt-1 inline-flex items-center justify-center rounded-md px-1.5 font-bold tracking-wide", FILL, s.pill, tier.startsWith("HT") ? TEXT_HT : TEXT_LT)}
+        >
+          {tier}
+        </span>
       </span>
-      <span
-        className={cn("relative -mt-1 inline-flex items-center justify-center rounded-md px-1.5 font-bold tracking-wide", FILL, s.pill, tier.startsWith("HT") ? TEXT_HT : TEXT_LT)}
-      >
-        {tier}
-      </span>
-    </span>
+    </Tip>
   );
 }
 
@@ -65,9 +70,20 @@ export function KitTier({ kitId, tier, size = "md", className }: { kitId: KitId;
 export function TierMark({ high, className }: { high: boolean; className?: string }) {
   return (
     <svg role="img" aria-label={high ? "High tier" : "Low tier"} viewBox="0 0 20 20" className={cn("h-5 w-5 shrink-0", className)} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-      <title>{high ? "High tier" : "Low tier"}</title>
       {high ? <path d="m4.5 10.5 5.5-5.5 5.5 5.5M4.5 16 10 10.5 15.5 16" /> : <path d="m4.5 13 5.5-5.5 5.5 5.5" />}
     </svg>
+  );
+}
+
+/** Themed tooltip (replaces the browser's native title tooltip, which can't be styled). */
+export function Tip({ label, children, side = "top" }: { label: ReactNode; children: ReactElement; side?: "top" | "bottom" | "left" | "right" }) {
+  return (
+    <Tooltip delayDuration={120}>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={side} sideOffset={6} className="rounded-md border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-xl shadow-black/50">
+        {label}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -125,16 +141,17 @@ export function SiteHeader() {
             className="h-9 w-40 rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-56"
           />
         </form>
+        <Tip label="Discord" side="bottom">
         <a
           href={DISCORD_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Join the Mace Legion Discord"
-          title="Discord"
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:border-[#5865F2]/70 hover:bg-[#5865F2] hover:text-white"
         >
           <DiscordIcon className="h-[18px] w-[18px]" />
         </a>
+        </Tip>
         </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto border-t px-3 py-2 text-sm md:hidden">
@@ -166,7 +183,7 @@ export function SiteFooter() {
 /** Player head or full-body render from crafty.gg. Falls back to Crafty's Steve if a skin fails to load. */
 export function PlayerImg({
   player, kind = "head", size = 40, className, alt = "",
-}: { player: { name: string; uuid?: string | undefined }; kind?: "head" | "body"; size?: number; className?: string; alt?: string }) {
+}: { player: { name: string; uuid?: string | undefined }; kind?: "head" | "bust" | "body"; size?: number; className?: string; alt?: string }) {
   const urls = useMemo(() => skinUrls(player, kind, size), [player.name, player.uuid, kind, size]);
   const [i, setI] = useState(0);
   const ref = useRef<HTMLImageElement>(null);

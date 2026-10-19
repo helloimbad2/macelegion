@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { SiteHeader, SiteFooter } from "@/components/tier-ui";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function NotFoundComponent() {
   return (
@@ -111,6 +112,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <TooltipProvider delayDuration={120} skipDelayDuration={300}>
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
         <main className="flex-1">
@@ -118,6 +120,7 @@ function RootComponent() {
         </main>
         <SiteFooter />
       </div>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

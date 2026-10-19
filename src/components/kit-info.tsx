@@ -14,13 +14,13 @@ type KitVariant = { label: string; tiers: Tier[]; src: string; alt: string };
 const TESTING_KITS: Partial<Record<KitId, KitVariant[]>> = {
   diamondmace: [{ label: "Diamond Mace", tiers: [], src: diamondKit, alt: "Diamond Mace testing kit inventory" }],
   macepot: [
-    { label: "LT Mace Pot", tiers: ["LT5", "LT4", "LT3"], src: macePotLt, alt: "Low tier Mace Pot testing kit inventory" },
-    { label: "HT Mace Pot", tiers: ["HT3", "HT2", "HT1"], src: macePotHt, alt: "High tier Mace Pot testing kit inventory" },
+    { label: "LT Mace Pot", tiers: ["LT5", "HT5", "LT4", "HT4", "LT3"], src: macePotLt, alt: "Low tier Mace Pot testing kit inventory" },
+    { label: "HT Mace Pot", tiers: ["HT3", "LT2", "HT2", "LT1", "HT1"], src: macePotHt, alt: "High tier Mace Pot testing kit inventory" },
   ],
 };
 
 const tabTrigger =
-  "h-auto whitespace-normal rounded-xl border border-transparent bg-muted/40 px-3 py-3.5 text-center text-[15px] font-semibold leading-tight text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-border data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none";
+  "h-auto whitespace-normal rounded-xl border border-transparent bg-muted/40 px-2 py-2.5 text-center text-sm font-semibold sm:px-3 sm:py-3 sm:text-[15px] leading-tight text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-border data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none";
 
 export function KitInfo({ kitId }: { kitId: KitId }) {
   const [open, setOpen] = useState(false);
@@ -41,11 +41,12 @@ export function KitInfo({ kitId }: { kitId: KitId }) {
           Information
         </button>
       </PopoverTrigger>
+      {/* Wide and compact so nothing needs scrolling; overflow stays as a safety net on very short screens. */}
       <PopoverContent
         align="end"
         sideOffset={8}
         collisionPadding={12}
-        className="w-[min(30rem,calc(100vw-1.5rem))] max-h-[min(var(--radix-popover-content-available-height),46rem)] overflow-y-auto rounded-2xl border bg-card p-4 shadow-2xl shadow-black/60"
+        className="max-h-[var(--radix-popover-content-available-height)] w-[min(40rem,calc(100vw-1.5rem))] overflow-y-auto rounded-2xl border bg-card p-3 shadow-2xl shadow-black/60 sm:p-4"
       >
         <Tabs defaultValue="titles">
           <TabsList className={cn("grid h-auto w-full gap-2 bg-transparent p-0", hasKit ? "grid-cols-3" : "grid-cols-2")}>
@@ -54,14 +55,14 @@ export function KitInfo({ kitId }: { kitId: KitId }) {
             {hasKit && <TabsTrigger value="kit" className={tabTrigger}>Testing Kit</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="titles" className="mt-5">
+          <TabsContent value="titles" className="mt-3 sm:mt-4">
             <TitlesTab />
           </TabsContent>
-          <TabsContent value="points" className="mt-5">
+          <TabsContent value="points" className="mt-3 sm:mt-4">
             <PointsTab />
           </TabsContent>
           {hasKit && (
-            <TabsContent value="kit" className="mt-5">
+            <TabsContent value="kit" className="mt-3 sm:mt-4">
               <TestingKitTab kitId={kitId} />
             </TabsContent>
           )}
@@ -76,14 +77,14 @@ export function KitInfo({ kitId }: { kitId: KitId }) {
 function TitlesTab() {
   return (
     <>
-      <h3 className="text-[15px] font-bold">How to obtain Achievement Titles</h3>
-      <ul className="mt-4 flex flex-col gap-4">
+      <h3 className="text-sm font-bold sm:text-[15px]">How to obtain Achievement Titles</h3>
+      <ul className="mt-2 grid gap-x-3 gap-y-2 max-[380px]:grid-cols-2 min-[381px]:gap-y-2.5 min-[381px]:mt-2.5 sm:mt-3 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-3.5">
         {TITLES.map((t, i) => (
-          <li key={t.name} className="flex items-start gap-3">
+          <li key={t.name} className={cn("flex items-start gap-2.5 sm:gap-3", i === TITLES.length - 1 && "max-[380px]:col-span-2 sm:col-span-2")}>
             <TitleEmblem rank={TITLES.length - 1 - i} color={t.color} className="mt-0.5" />
             <div className="min-w-0">
-              <div className="font-semibold leading-tight">{t.name}</div>
-              <div className="mt-0.5 text-sm text-muted-foreground">{t.desc}</div>
+              <div className="text-sm font-semibold leading-tight sm:text-base">{t.name}</div>
+              <div className="mt-0.5 text-[13px] leading-snug text-muted-foreground max-[380px]:text-xs sm:text-sm">{t.desc}</div>
             </div>
           </li>
         ))}
@@ -124,22 +125,22 @@ function PointsTab() {
   return (
     <>
       <h3 className="text-[15px] font-bold">How ranking points are calculated</h3>
-      <div className="mt-4 flex flex-col gap-5">
+      <div className="mt-2 flex flex-col divide-y divide-border/60">
         {[1, 2, 3, 4, 5].map((n) => {
           const accent = TIER_ACCENT[n - 1];
           return (
-            <div key={n}>
-              <div className="flex items-center gap-2 font-bold" style={accent ? { color: accent } : undefined}>
-                {accent && <Trophy className="h-[18px] w-[18px]" />}
+            <div key={n} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 sm:gap-x-4 sm:py-3">
+              <div className="flex w-[4.75rem] items-center gap-1.5 text-sm font-bold sm:w-24 sm:gap-2 sm:text-base" style={accent ? { color: accent } : undefined}>
+                {accent ? <Trophy className="h-[18px] w-[18px]" /> : <span className="w-[18px]" />}
                 Tier {n}
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {(["HT", "LT"] as const).map((h) => {
                   const pts = TIER_POINTS[`${h}${n}` as Tier];
                   return (
                     <span
                       key={h}
-                      className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold"
+                      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-bold sm:px-3.5 sm:py-1.5 sm:text-sm"
                       style={{ color: `var(--t${n})`, background: `color-mix(in oklab, var(--t${n}) 16%, #0c0c0c)` }}
                     >
                       {pts} {pts === 1 ? "Point" : "Points"}
@@ -174,11 +175,11 @@ function TestingKitTab({ kitId }: { kitId: KitId }) {
   if (!v) return null;
 
   return (
-    <>
-      <h3 className="text-[15px] font-bold">Testing Kit</h3>
-
-      {variants.length > 1 && (
-        <div role="tablist" aria-label="Testing kit tier range" className="mt-3 grid grid-cols-2 gap-2">
+    // Side by side on wide panels: the kit list on the left, the inventory on the right.
+    <div className="grid gap-3 sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-4">
+      <div>
+        <h3 className="text-[15px] font-bold">Testing Kit</h3>
+        <div role="tablist" aria-label="Testing kit" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-1">
           {variants.map((opt, idx) => (
             <button
               key={opt.label}
@@ -187,24 +188,32 @@ function TestingKitTab({ kitId }: { kitId: KitId }) {
               aria-selected={idx === i}
               onClick={() => setI(idx)}
               className={cn(
-                "flex flex-col items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors",
+                "flex flex-col items-center gap-2 rounded-xl border px-2.5 py-2.5 text-sm font-semibold transition-colors",
                 idx === i ? "border-border bg-muted text-foreground" : "border-transparent bg-muted/40 text-muted-foreground hover:text-foreground",
               )}
             >
               {opt.label}
-              <span className="flex gap-1">
-                {opt.tiers.map((t) => (
-                  <TierBadge key={t} tier={t} className="h-[18px] min-w-9 text-[11px]" />
-                ))}
-              </span>
+              {opt.tiers.length > 0 && (
+                <span className="flex flex-wrap justify-center gap-1">
+                  {opt.tiers.map((t) => (
+                    <TierBadge key={t} tier={t} className="h-[18px] min-w-8 text-[10px]" />
+                  ))}
+                </span>
+              )}
             </button>
           ))}
         </div>
-      )}
+      </div>
 
-      <figure className="mt-4 overflow-hidden rounded-xl border bg-black/50 p-2.5">
-        <img src={v.src} alt={v.alt} className="mx-auto block w-full max-w-[26rem] rounded-md" />
+      {/* The image shrinks to whatever height the popover has, so the kit is always fully visible. */}
+      <figure className="flex items-start justify-center overflow-hidden rounded-xl border bg-black/50 p-2 [--kit-overhead:17rem] sm:p-2.5 sm:[--kit-overhead:8.5rem]">
+        <img
+          src={v.src}
+          alt={v.alt}
+          className="block h-auto w-auto max-w-full rounded-md"
+          style={{ maxHeight: "max(11rem, min(30rem, calc(var(--radix-popover-content-available-height, 100vh) - var(--kit-overhead))))" }}
+        />
       </figure>
-    </>
+    </div>
   );
 }

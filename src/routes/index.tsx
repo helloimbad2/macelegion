@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, type CSSProperties } from "react";
 import { KITS, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
-import { KitTier, PlayerImg, RankNumber, TierBadge } from "@/components/tier-ui";
+import { KitTier, PlayerImg, RankNumber, TierBadge, Tip } from "@/components/tier-ui";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -65,8 +65,8 @@ function Index() {
                   <span className="podium-edge" aria-hidden />
                   <PlayerImg
                     player={p}
-                    kind="body"
-                    className={cn("pixel w-auto max-w-full object-contain drop-shadow-[0_12px_14px_rgba(0,0,0,0.55)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
+                    kind="bust"
+                    className={cn("w-auto max-w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.5)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
@@ -132,9 +132,11 @@ function Index() {
           <div className="hidden grid-cols-[var(--rk)_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
             <span>#</span><span>Player</span><span>Region</span>
             {KITS.map((k) => (
-              <span key={k.id} className="flex justify-center" title={k.name}>
-                <img src={k.icon} alt={k.name} className="pixel h-5 w-5" />
-              </span>
+              <Tip key={k.id} label={k.name}>
+                <span className="flex justify-center">
+                  <img src={k.icon} alt={k.name} className="pixel h-5 w-5" />
+                </span>
+              </Tip>
             ))}
           </div>
           <div className="mt-1.5 flex flex-col gap-1.5">
@@ -152,7 +154,11 @@ function Index() {
               >
                 <div className="flex items-baseline gap-1">
                   <RankNumber rank={p.rank} />
-                  {regionRank && <span className="font-mono text-sm font-semibold text-red-500" title="Rank in this region">#{regionRank.get(p.name)}</span>}
+                  {regionRank && (
+                    <Tip label="Rank in this region">
+                      <span className="font-mono text-sm font-semibold text-red-500">#{regionRank.get(p.name)}</span>
+                    </Tip>
+                  )}
                 </div>
                 <div className="flex min-w-0 items-center gap-3">
                   <PlayerImg player={p} size={40} className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" />

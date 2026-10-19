@@ -95,6 +95,35 @@
     letter-spacing: -0.035em;
     text-wrap: balance;
   }
+  /* ---- Native UI, themed ----
+     Scrollbars: slim dark thumb on a transparent track, brighter on hover.
+     Chromium and Safari use the -webkit- pieces; Firefox gets the standard properties. */
+  *::-webkit-scrollbar { width: 12px; height: 12px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    background: oklch(0.32 0 0);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover { background: oklch(0.5 0 0); background-clip: content-box; }
+  *::-webkit-scrollbar-thumb:active { background: oklch(0.62 0 0); background-clip: content-box; }
+  *::-webkit-scrollbar-corner { background: transparent; }
+  @supports (-moz-appearance: none) {
+    * { scrollbar-width: thin; scrollbar-color: oklch(0.36 0 0) transparent; }
+  }
+  html { accent-color: var(--foreground); -webkit-tap-highlight-color: transparent; }
+  input, textarea { caret-color: var(--foreground); }
+  /* browser autofill paints inputs light blue/yellow by default */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground);
+    caret-color: var(--foreground);
+    box-shadow: 0 0 0 1000px var(--background) inset;
+    transition: background-color 9999s ease-out;
+  }
+  input::-webkit-search-cancel-button { filter: invert(1) opacity(0.6); }
   :focus-visible {
     outline: 2px solid oklch(0.62 0.2 255);
     outline-offset: 2px;

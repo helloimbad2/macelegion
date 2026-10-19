@@ -50,19 +50,26 @@ type SkinSubject = { name: string; uuid?: string | undefined };
 
 /**
  * All skins come from crafty.gg's render service (https://crafty.gg/skin-service), which
- * resolves usernames itself. Heads are flat 2D faces; bodies are the 3D full-body render.
+ * resolves usernames itself.
+ *   head - flat 2D face
+ *   bust - 3D head and shoulders, Crafty's own default camera (used on the podium)
+ *   body - 3D full body, at the angle Crafty uses in its own docs
+ * Their API only exposes camera angle, size, shadow and cape (no limb posing), so the
+ * `FULL_BODY_ANGLE` below is the one knob to turn if the profile figure needs re-angling.
  * Returns [primary, fallback]: the fallback is Crafty's own Steve, so a failed load never
  * shows a broken image.
  */
-export function skinUrls(p: SkinSubject, kind: "head" | "body", size = 40): string[] {
+const FULL_BODY_ANGLE = "width=300&height=360&x=-30&z=50";
+
+export function skinUrls(p: SkinSubject, kind: "head" | "bust" | "body", size = 40): string[] {
   const who = encodeURIComponent(p.uuid?.replace(/-/g, "") ?? p.name);
   const steve = "MHF_Steve";
   if (kind === "head") {
     const px = Math.min(1024, Math.max(32, size * 2)); // 2x for sharp pixels on retina screens
     return [`https://render.crafty.gg/2d/head/${who}?size=${px}`, `https://render.crafty.gg/2d/head/${steve}?size=${px}`];
   }
-  const q = "width=300&height=360&x=-30&z=50";
-  return [`https://render.crafty.gg/3d/full/${who}?${q}`, `https://render.crafty.gg/3d/full/${steve}?${q}`];
+  if (kind === "bust") return [`https://render.crafty.gg/3d/bust/${who}`, `https://render.crafty.gg/3d/bust/${steve}`];
+  return [`https://render.crafty.gg/3d/full/${who}?${FULL_BODY_ANGLE}`, `https://render.crafty.gg/3d/full/${steve}?${FULL_BODY_ANGLE}`];
 }
 
 export const playersQuery = {
