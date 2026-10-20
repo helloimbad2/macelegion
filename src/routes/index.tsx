@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, type CSSProperties } from "react";
 import { KITS, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
 import { KitTier, PlayerImg, RankNumber, TierBadge, Tip } from "@/components/tier-ui";
+import { PlayerViewer } from "@/components/player-viewer";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -63,10 +64,12 @@ function Index() {
                   style={{ animationDelay: `${150 + i * 90}ms` }}
                 >
                   <span className="podium-edge" aria-hidden />
-                  <PlayerImg
+                  {/* #2 and #3 turn in toward the champion */}
+                  <PlayerViewer
                     player={p}
-                    kind="bust"
-                    className={cn("w-auto max-w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.5)]", place === 1 ? "h-40 sm:h-56" : "h-32 sm:h-44")}
+                    pose={place === 1 ? "champion" : place === 2 ? "ready" : "calm"}
+                    facing={place === 1 ? 0 : place === 2 ? 0.5 : -0.5}
+                    className={cn("aspect-[3/4] w-full", place === 1 ? "max-w-[10.5rem] sm:max-w-[14rem]" : "max-w-[9rem] sm:max-w-[11.5rem]")}
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { KITS, TIER_POINTS, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
-import { KitTier, PlayerImg } from "@/components/tier-ui";
+import { KitTier } from "@/components/tier-ui";
+import { PlayerViewer } from "@/components/player-viewer";
 
 export const Route = createFileRoute("/player/$name")({
   loader: ({ context }) => context.queryClient.ensureQueryData(playersQuery),
@@ -39,13 +40,13 @@ function PlayerPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pt-10">
       <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"><svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 5-5 5 5 5" /></svg>Rankings</Link>
-      <div className="panel relative mt-4 grid gap-8 overflow-hidden p-6 sm:grid-cols-[180px_minmax(0,1fr)] sm:p-8">
+      <div className="panel relative mt-4 grid gap-8 overflow-hidden p-6 sm:grid-cols-[210px_minmax(0,1fr)] sm:p-8">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-0 w-1/2"
           style={{ background: `radial-gradient(ellipse 60% 55% at 28% 45%, color-mix(in oklab, ${tone} 24%, transparent), transparent 70%)` }}
         />
-        <PlayerImg player={p} kind="body" alt={p.name} className="relative mx-auto h-64 w-auto max-w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.55)]" />
+        <PlayerViewer player={p} pose="showcase" facing={0.25} className="relative mx-auto aspect-[3/4] w-full max-w-[13rem]" />
         <div className="relative min-w-0">
           <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, <span style={{ color: regionInfo(p.region).color }}>{regionInfo(p.region).name}</span></p>
           <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KitKitRouteImport } from './routes/kit.$kit'
 import { Route as PlayerNameRouteImport } from './routes/player.$name'
+import { Route as ApiSkinNameRouteImport } from './routes/api.skin.$name'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const PlayerNameRoute = PlayerNameRouteImport.update({
   path: '/player/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSkinNameRoute = ApiSkinNameRouteImport.update({
+  id: '/api/skin/$name',
+  path: '/api/skin/$name',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/kit/$kit': typeof KitKitRoute
   '/player/$name': typeof PlayerNameRoute
+  '/api/skin/$name': typeof ApiSkinNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/kit/$kit': typeof KitKitRoute
   '/player/$name': typeof PlayerNameRoute
+  '/api/skin/$name': typeof ApiSkinNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/kit/$kit': typeof KitKitRoute
   '/player/$name': typeof PlayerNameRoute
+  '/api/skin/$name': typeof ApiSkinNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kit/$kit' | '/player/$name'
+  fullPaths: '/' | '/kit/$kit' | '/player/$name' | '/api/skin/$name'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kit/$kit' | '/player/$name'
-  id: '__root__' | '/' | '/kit/$kit' | '/player/$name'
+  to: '/' | '/kit/$kit' | '/player/$name' | '/api/skin/$name'
+  id: '__root__' | '/' | '/kit/$kit' | '/player/$name' | '/api/skin/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   KitKitRoute: typeof KitKitRoute
   PlayerNameRoute: typeof PlayerNameRoute
+  ApiSkinNameRoute: typeof ApiSkinNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayerNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/skin/$name': {
+      id: '/api/skin/$name'
+      path: '/api/skin/$name'
+      fullPath: '/api/skin/$name'
+      preLoaderRoute: typeof ApiSkinNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   KitKitRoute: KitKitRoute,
   PlayerNameRoute: PlayerNameRoute,
+  ApiSkinNameRoute: ApiSkinNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
