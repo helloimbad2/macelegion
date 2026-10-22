@@ -35,21 +35,36 @@ function KitPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-10">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          <img src={kit.icon} alt="" className="pixel h-11 w-11 shrink-0 sm:h-14 sm:w-14" />
-          <h1 className="truncate text-3xl font-semibold sm:text-4xl">{kit.name}</h1>
+          <img src={kit.icon} alt="" className="pixel h-10 w-10 shrink-0 sm:h-14 sm:w-14" />
+          <h1 className="text-2xl font-semibold sm:truncate sm:text-4xl">{kit.name}</h1>
         </div>
         <KitInfo kitId={kit.id} />
       </div>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {/* five stacked lists are long on a phone, so jump straight to a tier (hidden once they sit side by side) */}
+      <nav aria-label="Jump to tier" className="mt-5 flex gap-2 overflow-x-auto pb-1 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => document.getElementById(`tier-${n}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors hover:brightness-125"
+            style={{ color: `var(--t${n})`, background: `color-mix(in oklab, var(--t${n}) 12%, var(--surface))` }}
+          >
+            Tier {n}
+          </button>
+        ))}
+      </nav>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:grid-cols-5">
         {[1, 2, 3, 4, 5].map((n) => {
           const inTier = data
             .filter((p) => p.tiers[kit.id]?.charAt(2) === String(n))
             .sort((a, b) => (a.tiers[kit.id]!.startsWith("HT") ? -1 : 1) - (b.tiers[kit.id]!.startsWith("HT") ? -1 : 1));
           return (
-            <section key={n} className="panel overflow-hidden" style={{ borderTop: `2px solid var(--t${n})` }}>
+            <section key={n} id={`tier-${n}`} className="panel scroll-mt-32 overflow-hidden" style={{ borderTop: `2px solid var(--t${n})` }}>
               <h2 className={`flex items-baseline justify-between border-b px-4 py-3 text-lg font-semibold ${tierHead[n - 1]}`} style={{ background: `color-mix(in oklab, var(--t${n}) 9%, var(--surface))` }}>Tier {n}<span className="text-xs font-normal tabular-nums text-muted-foreground">{inTier.length}</span></h2>
               <ul className="flex flex-col gap-1.5 p-2">
                 {inTier.map((p) => {
@@ -69,6 +84,7 @@ function KitPage() {
                           <span className="absolute inset-0 block truncate leading-6 transition-all duration-200 group-hover:-translate-y-full group-hover:opacity-0 group-focus-visible:-translate-y-full group-focus-visible:opacity-0">{p.name}</span>
                           <span aria-hidden className="absolute inset-0 block translate-y-full truncate leading-6 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100" style={{ color: region.color }}>{region.short}</span>
                         </span>
+                        <span className="hidden text-xs font-semibold [@media(hover:none)]:inline" style={{ color: region.color }}>{p.region}</span>
                         <TierMark high={high} className={high ? "text-foreground" : "text-muted-foreground"} />
                       </Link>
                     </li>

@@ -38,6 +38,8 @@ export function PlayerViewer({ player, pose = "calm", facing = 0, className }: P
     if (!box || !canvas) return;
     // People who ask for less motion keep the still crafty.gg render.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // ...and so do people on a data saver, since the 3D engine is a ~160KB download
+    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
 
     let disposed = false;
     let viewer: SkinViewer | null = null;
@@ -224,7 +226,7 @@ export function PlayerViewer({ player, pose = "calm", facing = 0, className }: P
   }, [player.name, pose, facing]);
 
   return (
-    <div ref={boxRef} role="img" aria-label={`${player.name}'s skin`} data-ready={ready} className={cn("group/viewer relative", className)}>
+    <div ref={boxRef} role="img" aria-label={`${player.name}'s skin`} data-ready={ready} className={cn("group/viewer relative select-none [-webkit-touch-callout:none]", className)}>
       {/* the crafty.gg render: shown first, and kept if the model can't run */}
       <PlayerImg
         player={player}

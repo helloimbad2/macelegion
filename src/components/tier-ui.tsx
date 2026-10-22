@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import { KITS, logoUrl, skinUrls, type KitId, type Tier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
@@ -104,13 +104,22 @@ const navActive = "text-foreground after:bg-primary";
 export function SiteHeader() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  // keep the current page's tab visible in the phone nav, which scrolls sideways
+  const navRef = useRef<HTMLElement>(null);
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    const nav = navRef.current;
+    const active = nav?.querySelector<HTMLElement>('[data-status="active"]');
+    if (nav && active) nav.scrollTo({ left: active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2, behavior: "smooth" });
+  }, [path]);
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-4">
-        <Link to="/" className="shrink-0">
-          <img src={logoUrl} alt="Mace Legion" className="h-10 w-auto" />
+    // on a phone held sideways the sticky header would eat a third of the screen, so it scrolls away there
+    <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur-md pointer-coarse:[@media(max-height:480px)]:static">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8">
+        <Link to="/" className="shrink-0 py-2">
+          <img src={logoUrl} alt="Mace Legion" className="h-8 w-auto sm:h-10" />
         </Link>
-        <nav className="hidden items-center md:flex">
+        <nav className="hidden items-center lg:flex">
           <Link to="/" activeOptions={{ exact: true }} className={cn(navLink, "py-[1.3125rem]")} activeProps={{ className: navActive }}>
             Overall
           </Link>
@@ -121,9 +130,9 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 sm:flex-none">
         <form
-          className="relative"
+          className="relative min-w-0 flex-1 sm:flex-none"
           onSubmit={(e) => {
             e.preventDefault();
             if (q.trim()) navigate({ to: "/player/$name", params: { name: q.trim() } });
@@ -138,7 +147,7 @@ export function SiteHeader() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search player"
             aria-label="Search player"
-            className="h-9 w-40 rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-56"
+            className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-56 pointer-coarse:h-10 pointer-coarse:text-base"
           />
         </form>
         <Tip label="Discord" side="bottom">
@@ -147,17 +156,21 @@ export function SiteHeader() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Join the Mace Legion Discord"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:border-[#5865F2]/70 hover:bg-[#5865F2] hover:text-white"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground transition-colors hover:border-[#5865F2]/70 hover:bg-[#5865F2] hover:text-white pointer-coarse:h-10 pointer-coarse:w-10"
         >
           <DiscordIcon className="h-[18px] w-[18px]" />
         </a>
         </Tip>
         </div>
       </div>
-      <nav className="flex gap-1 overflow-x-auto border-t px-3 py-2 text-sm md:hidden">
-        <Link to="/" activeOptions={{ exact: true }} className="shrink-0 rounded-md px-3 py-1 text-muted-foreground" activeProps={{ className: "text-foreground bg-muted" }}>Overall</Link>
+      {/* slides sideways; the edges fade to hint there is more, and tabs are 40px tall for thumbs */}
+      <nav
+        ref={navRef}
+        className="flex gap-1 overflow-x-auto border-t py-1.5 pl-3 pr-8 text-sm [mask-image:linear-gradient(to_right,transparent,#000_10px,#000_calc(100%-28px),transparent)] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
+      >
+        <Link to="/" activeOptions={{ exact: true }} className="shrink-0 rounded-md px-3 py-2.5 text-muted-foreground" activeProps={{ className: "text-foreground bg-muted" }}>Overall</Link>
         {KITS.map((k) => (
-          <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1 text-muted-foreground" activeProps={{ className: "text-foreground bg-muted" }}>
+          <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2.5 text-muted-foreground" activeProps={{ className: "text-foreground bg-muted" }}>
             <img src={k.icon} alt="" className="pixel h-4 w-4" />{k.name}
           </Link>
         ))}
@@ -171,7 +184,7 @@ export function SiteFooter() {
     <footer className="mt-24 border-t bg-surface/60">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-4 pt-8 text-sm text-muted-foreground sm:flex-row sm:justify-between">
         <span>© 2026 Mace Legion. Not affiliated with Mojang or Microsoft.</span>
-        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition-colors hover:text-[#7983f5]">
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 transition-colors hover:text-[#7983f5] pointer-coarse:py-2">
           <DiscordIcon className="h-4 w-4" />
           discord.gg/macelegion
         </a>

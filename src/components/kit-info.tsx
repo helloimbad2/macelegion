@@ -31,9 +31,9 @@ export function KitInfo({ kitId }: { kitId: KitId }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-2.5 rounded-xl border bg-card px-4 py-2.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted"
+          className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted sm:gap-2.5 sm:px-4 sm:py-2.5 sm:text-[15px] sm:leading-normal"
         >
-          <svg aria-hidden viewBox="0 0 24 24" className="h-[22px] w-[22px]">
+          <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 sm:h-[22px] sm:w-[22px]">
             <circle cx="12" cy="12" r="11" fill="currentColor" />
             <circle cx="12" cy="7.2" r="1.7" fill="oklch(0.15 0 0)" />
             <rect x="10.5" y="10" width="3" height="7.6" rx="1.2" fill="oklch(0.15 0 0)" />

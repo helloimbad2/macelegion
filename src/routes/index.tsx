@@ -73,8 +73,8 @@ function Index() {
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
                   <span className="mt-0.5 max-w-full truncate font-display text-base font-semibold sm:text-xl">{p.name}</span>
-                  <span className="mt-0.5 text-xs text-muted-foreground">
-                    {title(p.points)} <span className="ml-1 font-mono text-[color:var(--tone)]">{p.points} pts</span>
+                  <span className="mt-0.5 text-xs text-muted-foreground max-sm:flex max-sm:flex-col max-sm:items-center max-sm:text-center">
+                    {title(p.points)} <span className="ml-1 font-mono text-[color:var(--tone)] max-sm:ml-0">{p.points} pts</span>
                   </span>
                   <div className="mt-4 hidden gap-1.5 sm:flex">
                     {KITS.map((k) => (
@@ -93,8 +93,8 @@ function Index() {
           {KITS.map((k) => {
             const count = list.filter((p) => p.tiers[k.id]).length;
             return (
-              <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="panel group flex items-center gap-4 p-4 transition-colors hover:border-primary/60 hover:bg-muted/50">
-                <img src={k.icon} alt="" className="pixel h-12 w-12" />
+              <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="panel group flex items-center gap-4 p-4 transition-colors hover:border-primary/60 hover:bg-muted/50 max-sm:gap-3 max-sm:p-3">
+                <img src={k.icon} alt="" className="pixel h-12 w-12 max-sm:h-10 max-sm:w-10" />
                 <div className="min-w-0 flex-1">
                   <div className="font-display text-lg font-semibold leading-tight">{k.name}</div>
                   <div className="mt-0.5 text-sm text-muted-foreground">{count ? `${count} ranked players` : "Testing soon"}</div>
@@ -115,7 +115,7 @@ function Index() {
                 <button
                   key={r}
                   onClick={() => { setRegion(r); setLimit(PAGE); }}
-                  className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
+                  className={cn("rounded-md px-3 py-1 text-xs font-medium transition-colors pointer-coarse:px-4 pointer-coarse:py-2.5 pointer-coarse:text-sm", region === r ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground")}
                 >
                   {r !== "All" && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle" style={{ background: regionInfo(r).color }} />}
                   {r}
@@ -126,7 +126,7 @@ function Index() {
               value={filter}
               onChange={(e) => { setFilter(e.target.value); setLimit(PAGE); }}
               placeholder="Filter by name"
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-48"
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-48 pointer-coarse:h-11 pointer-coarse:text-base"
             />
           </div>
         </div>
@@ -187,13 +187,15 @@ function Index() {
                     </span>
                   ))}
                 </div>
+                {/* phones have no Region column, so the coloured region sits in the corner of the row */}
+                <span className="absolute right-3 top-2.5 text-xs font-semibold md:hidden" style={{ color: regionInfo(p.region).color }}>{p.region}</span>
               </Link>
             ))}
           </div>
           {shown.length === 0 && <p className="rounded-lg border bg-card px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
         </div>
         {filtered.length > limit && (
-          <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-md border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground">
+          <button onClick={() => setLimit(limit + PAGE)} className="mx-auto mt-5 block rounded-md border bg-surface px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground pointer-coarse:py-3">
             Show more ({filtered.length - limit} left)
           </button>
         )}

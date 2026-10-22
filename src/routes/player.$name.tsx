@@ -39,27 +39,30 @@ function PlayerPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 pt-10">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"><svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 5-5 5 5 5" /></svg>Rankings</Link>
-      <div className="panel relative mt-4 grid gap-8 overflow-hidden p-6 sm:grid-cols-[210px_minmax(0,1fr)] sm:p-8">
+      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground pointer-coarse:py-2.5 pointer-coarse:pr-4"><svg aria-hidden viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 5-5 5 5 5" /></svg>Rankings</Link>
+      {/* phone: model and name side by side, tiers full width underneath. sm and up: model on the left spanning both rows. */}
+      <div className="panel relative mt-4 grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-4 gap-y-5 overflow-hidden p-4 min-[380px]:grid-cols-[9rem_minmax(0,1fr)] min-[380px]:p-5 sm:grid-cols-[210px_minmax(0,1fr)] sm:gap-8 sm:p-8">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-0 w-1/2"
           style={{ background: `radial-gradient(ellipse 60% 55% at 28% 45%, color-mix(in oklab, ${tone} 24%, transparent), transparent 70%)` }}
         />
-        <PlayerViewer player={p} pose="showcase" facing={0.25} className="relative mx-auto aspect-[3/4] w-full max-w-[13rem]" />
+        <PlayerViewer player={p} pose="showcase" facing={0.25} className="relative mx-auto aspect-[3/4] w-full max-w-[13rem] sm:row-span-2" />
         <div className="relative min-w-0">
           <p className="font-mono text-sm" style={{ color: tone }}>Rank {idx + 1} overall, <span style={{ color: regionInfo(p.region).color }}>{regionInfo(p.region).name}</span></p>
-          <h1 className="mt-1 truncate text-5xl font-semibold">{p.name}</h1>
+          <h1 className="mt-1 text-2xl font-semibold max-sm:break-words min-[380px]:text-3xl sm:truncate sm:text-5xl">{p.name}</h1>
           <p className="mt-2 text-muted-foreground">{title(p.points)}, <span className="font-semibold tabular-nums text-foreground">{p.points}</span> points</p>
+        </div>
 
-          <h2 className="mt-8 text-sm font-medium text-muted-foreground">Tiers</h2>
-          <div className="mt-2 flex flex-wrap gap-1 rounded-xl border bg-surface p-3 sm:p-4">
+        <div className="relative col-span-2 min-w-0 sm:col-span-1">
+          <h2 className="text-sm font-medium text-muted-foreground">Tiers</h2>
+          <div className="mt-2 grid grid-cols-3 gap-1 rounded-xl border bg-surface p-2 sm:flex sm:flex-wrap sm:p-4">
             {KITS.map((k) => {
               const t = p.tiers[k.id];
               return (
-                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex w-32 flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50">
+                <Link key={k.id} to="/kit/$kit" params={{ kit: k.id }} className="group flex w-full flex-col items-center gap-1 rounded-lg px-1 py-3 transition-colors hover:bg-muted/50 sm:w-32">
                   <KitTier kitId={k.id} tier={t} size="md" />
-                  <span className="mt-1 whitespace-nowrap text-sm font-medium">{k.name}</span>
+                  <span className="mt-1 text-center text-[13px] font-medium sm:whitespace-nowrap sm:text-sm">{k.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">{t ? `+${TIER_POINTS[t]} pts` : "Untested"}</span>
                 </Link>
               );
