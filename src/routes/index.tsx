@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, type CSSProperties } from "react";
 import { KITS, logoUrl, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
-import { KitTier, PlayerImg, RankNumber, TierBadge, Tip } from "@/components/tier-ui";
-import { PlayerViewer } from "@/components/player-viewer";
+import { KitTier, PlayerImg, RankCell, TierBadge, Tip } from "@/components/tier-ui";
+import { PlayerViewer, prefetchSkin } from "@/components/player-viewer";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -60,6 +60,8 @@ function Index() {
                   key={p.name}
                   to="/player/$name"
                   params={{ name: p.name }}
+                  onPointerEnter={() => prefetchSkin(p.name)}
+                  onTouchStart={() => prefetchSkin(p.name)}
                   className={cn("podium rise group flex flex-col items-center rounded-xl px-2 pb-5 pt-6 transition-transform hover:-translate-y-0.5", style, place === 1 ? "sm:pb-8 sm:pt-9" : "")}
                   style={{ animationDelay: `${150 + i * 90}ms` }}
                 >
@@ -69,6 +71,7 @@ function Index() {
                     player={p}
                     pose={place === 1 ? "champion" : place === 2 ? "ready" : "calm"}
                     facing={place === 1 ? 0 : place === 2 ? 0.5 : -0.5}
+                    priority={place}
                     className={cn("aspect-[3/4] w-full", place === 1 ? "max-w-[10.5rem] sm:max-w-[14rem]" : "max-w-[9rem] sm:max-w-[11.5rem]")}
                   />
                   <span className="podium-rank mt-3 font-display text-3xl font-bold tabular-nums sm:text-4xl">{place}</span>
@@ -131,8 +134,8 @@ function Index() {
           </div>
         </div>
 
-        <div className="mt-5" style={{ "--rk": regionRank ? "5.25rem" : "3rem", "--rkm": regionRank ? "4.75rem" : "2.5rem" } as CSSProperties}>
-          <div className="hidden grid-cols-[var(--rk)_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
+        <div className="mt-5">
+          <div className="hidden grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)] items-center gap-3 rounded-lg border bg-surface px-4 py-3 text-xs font-medium text-muted-foreground md:grid">
             <span>#</span><span>Player</span><span>Region</span>
             {KITS.map((k) => (
               <Tip key={k.id} label={k.name}>
@@ -143,26 +146,25 @@ function Index() {
             ))}
           </div>
           <div className="mt-1.5 flex flex-col gap-1.5">
-            {shown.map((p) => (
+            {shown.map((p) => {
+              // with a region selected, the medals and highlights follow the rank inside that region
+              const inRegion = regionRank?.get(p.name);
+              const place = inRegion ?? p.rank;
+              return (
               <Link
                 key={p.name}
                 to="/player/$name"
                 params={{ name: p.name }}
+                onPointerEnter={() => prefetchSkin(p.name)}
+                onTouchStart={() => prefetchSkin(p.name)}
                 className={cn(
-                  "shine grid grid-cols-[var(--rkm)_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors hover:bg-muted/50 md:grid-cols-[var(--rk)_minmax(0,1fr)_5rem_repeat(3,4.25rem)]",
-                  p.rank === 1 && "border-gold/25 bg-gradient-to-r from-gold/[0.12] to-transparent shadow-[inset_3px_0_0_var(--gold)] [--sheen:var(--gold)]",
-                  p.rank === 2 && "border-silver/25 bg-gradient-to-r from-silver/[0.10] to-transparent shadow-[inset_3px_0_0_var(--silver)] [--sheen:var(--silver)]",
-                  p.rank === 3 && "border-bronze/25 bg-gradient-to-r from-bronze/[0.12] to-transparent shadow-[inset_3px_0_0_var(--bronze)] [--sheen:var(--bronze)]",
+                  "shine grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card px-4 py-2.5 transition-colors hover:bg-muted/50 md:grid-cols-[3rem_minmax(0,1fr)_5rem_repeat(3,4.25rem)]",
+                  place === 1 && "border-gold/25 bg-gradient-to-r from-gold/[0.12] to-transparent shadow-[inset_3px_0_0_var(--gold)] [--sheen:var(--gold)]",
+                  place === 2 && "border-silver/25 bg-gradient-to-r from-silver/[0.10] to-transparent shadow-[inset_3px_0_0_var(--silver)] [--sheen:var(--silver)]",
+                  place === 3 && "border-bronze/25 bg-gradient-to-r from-bronze/[0.12] to-transparent shadow-[inset_3px_0_0_var(--bronze)] [--sheen:var(--bronze)]",
                 )}
               >
-                <div className="flex items-baseline gap-1">
-                  <RankNumber rank={p.rank} />
-                  {regionRank && (
-                    <Tip label="Rank in this region">
-                      <span className="font-mono text-sm font-semibold text-red-500">#{regionRank.get(p.name)}</span>
-                    </Tip>
-                  )}
-                </div>
+                <RankCell rank={place} overall={inRegion === undefined ? undefined : p.rank} regionName={regionInfo(p.region).name} regionColor={regionInfo(p.region).color} />
                 <div className="flex min-w-0 items-center gap-3">
                   <PlayerImg player={p} size={40} className="pixel h-9 w-9 shrink-0 rounded-md ring-1 ring-border" />
                   <div className="min-w-0">
@@ -179,7 +181,7 @@ function Index() {
                     <KitTier kitId={k.id} tier={p.tiers[k.id]} size="xs" />
                   </span>
                 ))}
-                <div className="col-span-2 flex flex-wrap gap-2 pl-[calc(var(--rkm)+0.75rem)] md:hidden">
+                <div className="col-span-2 flex flex-wrap gap-2 pl-[3.25rem] md:hidden">
                   {KITS.map((k) => (
                     <span key={k.id} className="flex items-center gap-1">
                       <img src={k.icon} alt={k.name} className="pixel h-4 w-4" />
@@ -190,7 +192,8 @@ function Index() {
                 {/* phones have no Region column, so the coloured region sits in the corner of the row */}
                 <span className="absolute right-3 top-2.5 text-xs font-semibold md:hidden" style={{ color: regionInfo(p.region).color }}>{p.region}</span>
               </Link>
-            ))}
+              );
+            })}
           </div>
           {shown.length === 0 && <p className="rounded-lg border bg-card px-4 py-12 text-center text-sm text-muted-foreground">No players match that search.</p>}
         </div>

@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { KITS, TIER_POINTS, playersQuery, ranked, regionInfo, title } from "@/lib/tiers";
+import { warmSkin } from "@/lib/players.functions";
 import { KitTier } from "@/components/tier-ui";
 import { PlayerViewer } from "@/components/player-viewer";
 
 export const Route = createFileRoute("/player/$name")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(playersQuery),
+  loader: ({ context, params }) => {
+    // on a direct visit the server starts fetching this player's skin while it builds the page
+    if (typeof window === "undefined") void warmSkin({ data: params.name }).catch(() => {});
+    return context.queryClient.ensureQueryData(playersQuery);
+  },
   head: ({ params }) => ({
     meta: [
       { title: `${params.name} — Mace Legion Tiers` },

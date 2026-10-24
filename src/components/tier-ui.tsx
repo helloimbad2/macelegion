@@ -215,7 +215,49 @@ export function PlayerImg({
   return <img ref={ref} src={urls[i]} alt={alt} className={className} loading={kind === "head" ? "lazy" : undefined} onError={next} />;
 }
 
-export function RankNumber({ rank }: { rank: number }) {
-  const c = rank === 1 ? "text-gold" : rank === 2 ? "text-silver" : rank === 3 ? "text-bronze" : "text-muted-foreground";
-  return <span className={cn("w-8 shrink-0 font-display text-lg font-semibold tabular-nums", c)}>{rank}</span>;
+export function RankNumber({ rank, accent }: { rank: number; accent?: string | undefined }) {
+  const c = rank === 1 ? "text-gold" : rank === 2 ? "text-silver" : rank === 3 ? "text-bronze" : accent ? "" : "text-muted-foreground";
+  return (
+    <span className={cn("w-8 shrink-0 font-display text-lg font-semibold tabular-nums", c)} style={rank > 3 && accent ? { color: accent } : undefined}>
+      {rank}
+    </span>
+  );
+}
+
+function GlobeIcon({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 16 16" className={className} fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="6.2" />
+      <path d="M1.8 8h12.4M8 1.8c2 2 3 4 3 6.2s-1 4.2-3 6.2c-2-2-3-4-3-6.2s1-4.2 3-6.2Z" />
+    </svg>
+  );
+}
+
+/**
+ * The rank column of a ranking row. Normally just the overall rank. When a region is selected, the
+ * rank inside that region becomes the main number (medal colours for its top three, the region's own
+ * colour after that) and the overall rank sits underneath as a small globe tag.
+ */
+export function RankCell({ rank, overall, regionName, regionColor }: { rank: number; overall?: number | undefined; regionName?: string; regionColor?: string }) {
+  if (overall === undefined)
+    return (
+      <div className="flex items-baseline gap-1">
+        <RankNumber rank={rank} />
+      </div>
+    );
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <Tip label={`Rank in ${regionName}`}>
+        <span className="leading-none">
+          <RankNumber rank={rank} accent={regionColor} />
+        </span>
+      </Tip>
+      <Tip label="Overall rank">
+        <span className="inline-flex items-center gap-1 font-mono text-xs leading-none text-muted-foreground">
+          <GlobeIcon className="h-3 w-3" />
+          {overall}
+        </span>
+      </Tip>
+    </div>
+  );
 }

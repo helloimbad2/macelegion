@@ -15,11 +15,77 @@ import { cn } from "@/lib/utils";
 
 export type Pose = "champion" | "ready" | "calm" | "showcase";
 
+type Engine = typeof import("skinview3d");
+type Status = "loading" | "ready" | "fallback";
+
+/** Whether this visitor should get a live 3D model at all. */
+function canAnimate() {
+  if (typeof window === "undefined") return false;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  // a data saver gets the still image, since the 3D engine is a ~160KB download
+  return !(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+}
+
+// The 3D engine is a separate chunk. Start downloading it the moment this file runs in the browser,
+// which is long before React hydrates, so it is usually waiting by the time a model needs it.
+let enginePromise: Promise<Engine> | null = null;
+const loadEngine = () => {
+  enginePromise ??= import("skinview3d").catch((e) => { enginePromise = null; throw e; });
+  return enginePromise;
+};
+if (canAnimate()) void loadEngine().catch(() => {});
+
+// One shared download per player, so prefetching on hover and the viewer itself never fetch twice.
+const skinImages = new Map<string, Promise<HTMLImageElement>>();
+function loadSkinImage(name: string): Promise<HTMLImageElement> {
+  const key = name.toLowerCase();
+  let pending = skinImages.get(key);
+  if (!pending) {
+    pending = new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error(`No skin for ${name}`));
+      img.src = `/api/skin/${encodeURIComponent(name)}`;
+    });
+    pending.catch(() => skinImages.delete(key)); // let a later visit retry
+    skinImages.set(key, pending);
+  }
+  return pending;
+}
+
+// Creating a 3D context is the heavy part, and doing several in one go freezes the page and holds
+// every model back until the last one is built. So they are built one at a time, most important
+// first, with a frame in between so the browser can paint (and react to input) in the gaps.
+const queue: { priority: number; run: () => Promise<void> }[] = [];
+let building = false;
+function scheduleBuild(priority: number, run: () => Promise<void>) {
+  queue.push({ priority, run });
+  queue.sort((a, b) => a.priority - b.priority);
+  void drainQueue();
+}
+async function drainQueue() {
+  if (building) return;
+  building = true;
+  for (let job = queue.shift(); job; job = queue.shift()) {
+    try { await job.run(); } catch { /* a failed model falls back on its own */ }
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  building = false;
+}
+
+/** Start fetching a player's skin early (e.g. when their row is hovered), so their profile opens ready. */
+export function prefetchSkin(name: string) {
+  if (canAnimate()) void loadSkinImage(name).catch(() => {});
+}
+
 type Props = {
   player: { name: string; uuid?: string | undefined };
   pose?: Pose;
   /** Resting turn in radians (positive turns the player toward the viewer's right). */
   facing?: number;
+  /** Lower numbers get their 3D model built first when several are on screen. */
+  priority?: number;
   className?: string;
 };
 
@@ -27,28 +93,32 @@ const TAU = Math.PI * 2;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
-export function PlayerViewer({ player, pose = "calm", facing = 0, className }: Props) {
+export function PlayerViewer({ player, pose = "calm", facing = 0, priority = 0, className }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<Status>("loading");
 
   useEffect(() => {
     const box = boxRef.current;
     const canvas = canvasRef.current;
     if (!box || !canvas) return;
-    // People who ask for less motion keep the still crafty.gg render.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // ...and so do people on a data saver, since the 3D engine is a ~160KB download
-    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
+    // Less motion or a data saver: the still crafty.gg render instead of a 3D model.
+    if (!canAnimate()) { setStatus("fallback"); return; }
+    setStatus("loading");
 
     let disposed = false;
     let viewer: SkinViewer | null = null;
     const cleanups: (() => void)[] = [];
-
-    const start = async () => {
-      const { SkinViewer, FunctionAnimation } = await import("skinview3d");
+    // WebGL unavailable, or no skin for this name: fall back to the crafty.gg render
+    const fail = () => {
       if (disposed) return;
+      viewer?.dispose();
+      viewer = null;
+      setStatus("fallback");
+    };
 
+    const start = async (engine: Engine, skinImage: HTMLImageElement) => {
+      const { SkinViewer, FunctionAnimation } = engine;
       const rect = box.getBoundingClientRect();
       try {
         viewer = new SkinViewer({
@@ -60,7 +130,8 @@ export function PlayerViewer({ player, pose = "calm", facing = 0, className }: P
           zoom: 0.88,
         });
       } catch {
-        return; // no WebGL: keep the image
+        fail();
+        return;
       }
       const v = viewer;
       v.globalLight.intensity = 2.6;
@@ -68,11 +139,10 @@ export function PlayerViewer({ player, pose = "calm", facing = 0, className }: P
       v.controls.enabled = false; // we handle drag ourselves (flick and spring back)
 
       try {
-        await v.loadSkin(`/api/skin/${encodeURIComponent(player.name)}`, { model: "auto-detect" });
+        await v.loadSkin(skinImage, { model: "auto-detect" });
       } catch {
-        v.dispose();
-        viewer = null;
-        return; // skin not available: keep the image
+        fail();
+        return;
       }
       if (disposed) return;
 
@@ -200,39 +270,71 @@ export function PlayerViewer({ player, pose = "calm", facing = 0, className }: P
       io.observe(box);
       cleanups.push(() => io.disconnect());
 
-      requestAnimationFrame(() => { if (!disposed) setReady(true); });
+      // Don't hand over to the next model until this one has actually been shown: React commits the
+      // state change a moment after this frame, and the next model's setup would block it.
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => {
+          if (!disposed) setStatus("ready");
+          setTimeout(resolve, 80);
+        }),
+      );
     };
 
-    // only load three.js and the model when the player is about to be on screen
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect();
-          void start();
-        }
-      },
-      { rootMargin: "240px" },
-    );
-    io.observe(box);
+    // The skin file and the 3D engine download at the same time, rather than one after the other.
+    Promise.all([loadEngine(), loadSkinImage(player.name)])
+      .then(([engine, image]) => {
+        if (!disposed) scheduleBuild(priority, () => (disposed ? Promise.resolve() : start(engine, image)));
+      })
+      .catch(fail);
 
     return () => {
       disposed = true;
-      io.disconnect();
       cleanups.forEach((fn) => fn());
       viewer?.dispose();
       viewer = null;
-      setReady(false);
     };
-  }, [player.name, pose, facing]);
+  }, [player.name, pose, facing, priority]);
 
   return (
-    <div ref={boxRef} role="img" aria-label={`${player.name}'s skin`} data-ready={ready} className={cn("group/viewer relative select-none [-webkit-touch-callout:none]", className)}>
-      {/* the crafty.gg render: shown first, and kept if the model can't run */}
-      <PlayerImg
-        player={player}
-        kind="body"
-        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.5)] transition-opacity duration-500 group-data-[ready=true]/viewer:opacity-0"
-      />
+    <div
+      ref={boxRef}
+      role="img"
+      aria-label={`${player.name}'s skin`}
+      data-ready={status === "ready"}
+      data-status={status}
+      className={cn("group/viewer relative select-none [-webkit-touch-callout:none]", className)}
+    >
+      {/* While the model loads, a soft silhouette holds its place. It fades out as the model fades in. */}
+      <svg
+        aria-hidden
+        viewBox="0 0 16 32"
+        preserveAspectRatio="xMidYMax meet"
+        className="viewer-ghost pointer-events-none absolute inset-x-0 bottom-[7%] mx-auto h-[74%] w-full opacity-0 group-data-[status=loading]/viewer:opacity-100"
+        style={{ color: "color-mix(in oklab, var(--tone, #ffffff) 55%, transparent)" }}
+      >
+        <g className="viewer-ghost-pulse">
+          <g fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeOpacity=".4" strokeWidth=".3">
+            <rect x="4" y="0" width="8" height="8" rx="1" />
+            <rect x="4" y="8" width="8" height="12" rx=".8" />
+            <rect x="0" y="8" width="4" height="12" rx=".8" />
+            <rect x="12" y="8" width="4" height="12" rx=".8" />
+            <rect x="4" y="20" width="4" height="12" rx=".8" />
+            <rect x="8" y="20" width="4" height="12" rx=".8" />
+          </g>
+          <g fill="currentColor" fillOpacity=".5">
+            <rect x="5.6" y="3.2" width="1.5" height="1.3" />
+            <rect x="8.9" y="3.2" width="1.5" height="1.3" />
+          </g>
+        </g>
+      </svg>
+      {/* The crafty.gg render is only for players the 3D model can't show (no skin file, no WebGL, reduced motion). */}
+      {status === "fallback" && (
+        <PlayerImg
+          player={player}
+          kind="body"
+          className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_14px_16px_rgba(0,0,0,0.5)] animate-in fade-in duration-500"
+        />
+      )}
       {/* ground shadow and pedestal ring that breathe with the model */}
       <div aria-hidden className="viewer-shadow pointer-events-none absolute inset-x-[14%] bottom-[1%] h-[10%] rounded-[50%]" />
       <div
