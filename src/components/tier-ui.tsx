@@ -1,8 +1,9 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { KITS, logoUrl, skinUrls, type KitId, type Tier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tip } from "@/components/tip";
+import { TestingServer } from "@/components/testing-server";
 
 // Colour recipe (taken from the reference): one tint per tier, mixed into the page
 // background, drives both the ring and the pill fill. Text is the bright tier colour,
@@ -75,17 +76,7 @@ export function TierMark({ high, className }: { high: boolean; className?: strin
   );
 }
 
-/** Themed tooltip (replaces the browser's native title tooltip, which can't be styled). */
-export function Tip({ label, children, side = "top" }: { label: ReactNode; children: ReactElement; side?: "top" | "bottom" | "left" | "right" }) {
-  return (
-    <Tooltip delayDuration={120}>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side={side} sideOffset={6} className="rounded-md border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-xl shadow-black/50">
-        {label}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
+export { Tip };
 
 export const DISCORD_URL = "https://discord.gg/macelegion";
 
@@ -150,6 +141,9 @@ export function SiteHeader() {
             className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:w-56 pointer-coarse:h-10 pointer-coarse:text-base"
           />
         </form>
+        <div className="hidden lg:block">
+          <TestingServer variant="header" />
+        </div>
         <Tip label="Discord" side="bottom">
         <a
           href={DISCORD_URL}
@@ -164,9 +158,10 @@ export function SiteHeader() {
         </div>
       </div>
       {/* slides sideways; the edges fade to hint there is more, and tabs are 40px tall for thumbs */}
+      <div className="flex items-center border-t lg:hidden">
       <nav
         ref={navRef}
-        className="flex gap-1 overflow-x-auto border-t py-1.5 pl-3 pr-8 text-sm [mask-image:linear-gradient(to_right,transparent,#000_10px,#000_calc(100%-28px),transparent)] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
+        className="flex min-w-0 flex-1 gap-1 overflow-x-auto py-1.5 pl-3 pr-8 text-sm [mask-image:linear-gradient(to_right,transparent,#000_10px,#000_calc(100%-28px),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <Link to="/" activeOptions={{ exact: true }} className="shrink-0 rounded-md px-3 py-2.5 text-muted-foreground" activeProps={{ className: "text-foreground bg-muted" }}>Overall</Link>
         {KITS.map((k) => (
@@ -175,6 +170,10 @@ export function SiteHeader() {
           </Link>
         ))}
       </nav>
+      <div className="shrink-0 py-1.5 pl-1 pr-3">
+        <TestingServer variant="pinned" />
+      </div>
+      </div>
     </header>
   );
 }
